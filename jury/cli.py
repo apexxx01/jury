@@ -15,6 +15,7 @@ import asyncio
 import csv
 import json
 import logging
+import os
 import signal
 import sys
 import time
@@ -77,7 +78,15 @@ async def ensure_agent(cfg: config.Config, state: State, name: str) -> SwitchAge
     except SwitchError as e:
         if e.status != 409:
             raise
-        # The name exists but we lost its key: take it over.
+        # The name exists and this state dir has no key for it. That is either
+        # our own lost key or a second Jury on the same server; taking it over
+        # would cut a live Clerk off mid-case, so only do it when asked.
+        if os.environ.get("JURY_TAKEOVER") != "1":
+            _die(
+                f"An agent named '{name}' already exists on {cfg.switch_url} and this folder has no key for it.\n"
+                "  If another Jury is running against this server, stop here: two Clerks would fight over the same rooms.\n"
+                "  If this is your own Jury and you lost its .jury/ folder, run again with JURY_TAKEOVER=1 to re-key it."
+            )
         creds = await register_agent(
             cfg.switch_url, cfg.registration_token, name=name, display_name=display, description=desc, overwrite=True
         )

@@ -4,6 +4,7 @@ jury up                  register Clerk + Auditor, create the rooms, run
 jury doctor              check the server, token, bridge and judges
 jury submit URL...       file submissions into the intake room
 jury import FILE.csv     file every repo link in a CSV (any column)
+jury demo                the console on a recorded floor, no Switch needed
 jury audit URL           run the Auditor locally and print its report
 jury export [--csv F]    dump the leaderboard
 """
@@ -144,24 +145,56 @@ async def publish_bench(clerk: SwitchAgent) -> str:
     return await publish_template(clerk, BENCH_NAME)
 
 
-def snapshot(state: State, rubric: scoring.Rubric, cfg: config.Config) -> dict[str, Any]:
+def snapshot(state: State, rubric: scoring.Rubric, cfg: config.Config, judges_present: list[str] | None = None) -> dict[str, Any]:
+    """Everything the web console shows, in one JSON document (read-only)."""
+    from . import __version__
+
     cases = []
     for rank, c in enumerate(state.ranked(rubric.verdicts), 1):
         d = asdict(c)
         d.update(rank=rank, label=c.label, url=c.url, final=c.final)
         d.pop("extra", None)
+        d.pop("intake_message_id", None)
         d["judges"] = c.extra.get("judges", [])
         d["assignee"] = c.extra.get("assignee")
         d["first_pass_s"] = c.extra.get("first_pass_s")
-        d["appeals"] = len(c.extra.get("appeals", []))
+        d["appeal_log"] = [
+            {"by": a.get("by"), "text": a.get("text"), "at": a.get("at"), "previous": (a.get("previous") or {}).get("decision")}
+            for a in c.extra.get("appeals", [])
+        ]
+        d["appeals"] = len(d["appeal_log"])
+        d["nudged"] = c.extra.get("nudged", [])
+        d["disagreements"] = [
+            {"criterion": cid, "a": ja, "sa": sa, "b": jb, "sb": sb}
+            for cid, ja, sa, jb, sb in scoring.disagreements(c.scorecards, rubric, cfg.disagreement_gap)
+        ]
         cases.append(d)
     return {
+        "version": __version__,
         "rubric": {
             "name": rubric.name,
             "verdicts": rubric.verdicts,
+            "shortlist_at": rubric.shortlist_at,
+            "event_url": rubric.event_url,
             "criteria": [{"id": x.id, "label": x.label, "weight": x.weight, "judges": x.judges} for x in rubric.criteria],
         },
         "rooms": {"intake": cfg.intake_room, "floor": cfg.floor_room},
+        "bench": {
+            "clerk": CLERK,
+            "auditor": AUDITOR,
+            "judges": cfg.judges,
+            "present": judges_present if judges_present is not None else cfg.judges,
+            "humans": cfg.judge_users,
+        },
+        "settings": {
+            "intake_closed": state.intake_closed,
+            "window_start": cfg.window_start.isoformat(),
+            "window_end": cfg.window_end.isoformat(),
+            "enforce_deadline": cfg.enforce_deadline,
+            "disagreement_gap": cfg.disagreement_gap,
+            "remind_minutes": cfg.remind_minutes,
+            "share_feedback": cfg.share_feedback,
+        },
         "cases": cases,
         "generated_at": time.time(),
     }
@@ -208,7 +241,7 @@ async def cmd_up(cfg: config.Config, args: argparse.Namespace) -> None:
     server = None
     if not args.no_web:
         try:
-            server = await serve(cfg.web_host, cfg.web_port, lambda: snapshot(state, rubric, cfg))
+            server = await serve(cfg.web_host, cfg.web_port, lambda: snapshot(state, rubric, cfg, judges))
             print(f"  leaderboard: http://{cfg.web_host}:{cfg.web_port}")
         except OSError as e:
             print(f"  ⚠ web view off ({e})")
@@ -364,6 +397,42 @@ async def cmd_export(cfg: config.Config, args: argparse.Namespace) -> None:
         print(json.dumps(snap, indent=2, default=str))
 
 
+DEMO_FILE = Path(__file__).resolve().parent / "static" / "demo.json"
+
+
+def demo_snapshot() -> dict[str, Any]:
+    """The recorded floor the console shows with ``jury demo``: times shift so it always looks fresh."""
+    snap = json.loads(DEMO_FILE.read_text(encoding="utf-8"))
+    shift = time.time() - snap.get("generated_at", time.time())
+
+    def move(x: Any) -> Any:
+        if isinstance(x, dict):
+            return {
+                k: (v + shift if k in ("at", "created_at", "updated_at") and isinstance(v, (int, float)) else move(v)) for k, v in x.items()
+            }
+        if isinstance(x, list):
+            return [move(v) for v in x]
+        return x
+
+    snap = move(snap)
+    snap["generated_at"] = time.time()
+    snap["demo"] = True
+    return snap
+
+
+async def cmd_demo(cfg: config.Config, args: argparse.Namespace) -> None:
+    """Serve the console on a recorded floor: no Switch, no keys, nothing to set up."""
+    from .web import serve
+
+    server = await serve(cfg.web_host, args.port or cfg.web_port, demo_snapshot)
+    print(f"⚖️  Jury demo floor (recorded data, read-only): http://{cfg.web_host}:{args.port or cfg.web_port}")
+    print("  Ctrl+C to stop.")
+    try:
+        await asyncio.Event().wait()
+    finally:
+        server.close()
+
+
 def results_markdown(state: State, rubric: scoring.Rubric) -> str:
     """A results write-up an organiser can post: the ranking, then why, case by case."""
     ranked = state.ranked(rubric.verdicts)
@@ -428,6 +497,8 @@ def main(argv: list[str] | None = None) -> None:
     e = sub.add_parser("export", help="dump the leaderboard")
     e.add_argument("--csv", help="write the leaderboard as CSV")
     e.add_argument("--md", help="write a results report as Markdown")
+    d = sub.add_parser("demo", help="open the console on a recorded floor (no Switch needed)")
+    d.add_argument("--port", type=int, default=0)
     args = p.parse_args(argv)
     logging.basicConfig(
         level=logging.DEBUG if args.verbose else logging.INFO,
@@ -441,7 +512,7 @@ def main(argv: list[str] | None = None) -> None:
         args = p.parse_args(["up", *(argv or sys.argv[1:])])
     if cmd == "import":
         args.urls, cmd = [], "submit"
-    fn = {"up": cmd_up, "doctor": cmd_doctor, "submit": cmd_submit, "audit": cmd_audit, "export": cmd_export}[cmd]
+    fn = {"up": cmd_up, "doctor": cmd_doctor, "submit": cmd_submit, "audit": cmd_audit, "export": cmd_export, "demo": cmd_demo}[cmd]
     try:
         asyncio.run(fn(cfg, args))
     except KeyboardInterrupt:

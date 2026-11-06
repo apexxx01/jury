@@ -1,0 +1,940 @@
+{
+ "version": "1.0.0",
+ "rubric": {
+  "name": "Flip the Switch 2026",
+  "verdicts": [
+   "shortlist",
+   "maybe",
+   "pass"
+  ],
+  "shortlist_at": 70.0,
+  "event_url": "https://www.wemakedevs.org/hackathons/switch",
+  "criteria": [
+   {
+    "id": "use_of_switch",
+    "label": "Use of Switch",
+    "weight": 30.0,
+    "judges": [
+     "jury-auditor",
+     "jury-critic"
+    ]
+   },
+   {
+    "id": "technical_execution",
+    "label": "Technical execution",
+    "weight": 25.0,
+    "judges": [
+     "jury-auditor",
+     "jury-inspector"
+    ]
+   },
+   {
+    "id": "creativity_impact",
+    "label": "Creativity and impact",
+    "weight": 25.0,
+    "judges": [
+     "jury-critic",
+     "jury-inspector"
+    ]
+   },
+   {
+    "id": "presentation",
+    "label": "Presentation",
+    "weight": 20.0,
+    "judges": [
+     "jury-auditor",
+     "jury-critic"
+    ]
+   }
+  ]
+ },
+ "rooms": {
+  "intake": "jury-intake",
+  "floor": "jury-floor"
+ },
+ "bench": {
+  "clerk": "jury-clerk",
+  "auditor": "jury-auditor",
+  "judges": [
+   "jury-inspector",
+   "jury-critic"
+  ],
+  "present": [
+   "jury-inspector",
+   "jury-critic"
+  ],
+  "humans": [
+   "maya",
+   "dev"
+  ]
+ },
+ "settings": {
+  "intake_closed": false,
+  "window_start": "2026-11-04T00:01:00+05:30",
+  "window_end": "2026-11-07T23:59:00+05:30",
+  "enforce_deadline": false,
+  "disagreement_gap": 4.0,
+  "remind_minutes": 30,
+  "share_feedback": false
+ },
+ "cases": [
+  {
+   "number": 2,
+   "owner": "orbit-labs",
+   "repo": "standup-relay",
+   "submitter": "orbit",
+   "room_id": "r2",
+   "room_name": "case-002-standup-relay",
+   "status": "decided",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 10,
+      "technical_execution": 8.5,
+      "presentation": 9
+     },
+     "notes": {
+      "use_of_switch": "Switch SDK calls and room ops found in source.",
+      "technical_execution": "Tests, lockfile and CI present.",
+      "presentation": "README with screenshots and a demo video link."
+     },
+     "summary": "Deterministic audit of orbit-labs/standup-relay@9c1e2aa. Clean on secrets. 64/64 commits in the hackathon window.",
+     "red_flags": [],
+     "at": 1793946167.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 8,
+      "creativity_impact": 9
+     },
+     "notes": {
+      "technical_execution": "Clean install, 41 tests pass.",
+      "creativity_impact": "Replaces a daily meeting outright."
+     },
+     "summary": "Cloned, `docker compose up` worked first try. Agents post async standups into a room and the summary doc updates live.",
+     "red_flags": [],
+     "at": 1793946737.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 9,
+      "creativity_impact": 9,
+      "presentation": 8
+     },
+     "notes": {
+      "presentation": "Two-minute video shows the whole loop."
+     },
+     "summary": "Switch is the product here, not a bolt-on: rooms per team, a template for the standup bot, documents as the output.",
+     "red_flags": [],
+     "at": 1793946847.8992074
+    }
+   },
+   "verdict": {
+    "decision": "shortlist",
+    "score": 90,
+    "note": "best use of rooms + documents on the floor",
+    "judge": "maya",
+    "at": 1793950087.8992074,
+    "provisional": 88.6
+   },
+   "provisional": 88.6,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [],
+   "created_at": 1793946127.8992074,
+   "updated_at": 1793973487.9029195,
+   "rank": 1,
+   "label": "Case #002",
+   "url": null,
+   "final": 90.0,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "maya",
+   "first_pass_s": 720,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 3,
+   "owner": "ledgerline",
+   "repo": "invoice-chaser",
+   "submitter": "ledgerline",
+   "room_id": "r3",
+   "room_name": "case-003-invoice-chaser",
+   "status": "decided",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 9,
+      "technical_execution": 8,
+      "presentation": 7
+     },
+     "notes": {
+      "use_of_switch": "Switch SDK calls and room ops found in source.",
+      "technical_execution": "Tests, lockfile and CI present.",
+      "presentation": "README with screenshots and a demo video link."
+     },
+     "summary": "Deterministic audit of ledgerline/invoice-chaser@41b07fe. Clean on secrets. 38/38 commits in the hackathon window.",
+     "red_flags": [],
+     "at": 1793947962.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 7,
+      "creativity_impact": 8
+     },
+     "notes": {
+      "technical_execution": "One env var missing from .env.example; fixed in 30s."
+     },
+     "summary": "Ran it against the sample ledger: overdue invoices become a room per client, the agent drafts the nudge and waits for approval.",
+     "red_flags": [],
+     "at": 1793948467.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 8,
+      "creativity_impact": 9,
+      "presentation": 7
+     },
+     "notes": {},
+     "summary": "A real business workflow with a human approval step. Would pay for this.",
+     "red_flags": [],
+     "at": 1793948527.8992074
+    }
+   },
+   "verdict": {
+    "decision": "shortlist",
+    "score": 86,
+    "note": "human-in-the-loop done right",
+    "judge": "dev",
+    "at": 1793953567.8992074,
+    "provisional": 79.5
+   },
+   "provisional": 79.5,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [],
+   "created_at": 1793947927.8992074,
+   "updated_at": 1793973487.9029717,
+   "rank": 2,
+   "label": "Case #003",
+   "url": null,
+   "final": 86.0,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "dev",
+   "first_pass_s": 600,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 4,
+   "owner": "pagerpals",
+   "repo": "oncall-copilot",
+   "submitter": "pagerpals",
+   "room_id": "r4",
+   "room_name": "case-004-oncall-copilot",
+   "status": "decided",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 8,
+      "technical_execution": 6,
+      "presentation": 6
+     },
+     "notes": {
+      "use_of_switch": "Switch SDK calls and room ops found in source.",
+      "technical_execution": "No tests and no lockfile.",
+      "presentation": "Thin README, no demo video."
+     },
+     "summary": "Deterministic audit of pagerpals/oncall-copilot@e02d913. Clean on secrets. 22/22 commits in the hackathon window.",
+     "red_flags": [],
+     "at": 1793950497.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 5,
+      "creativity_impact": 7
+     },
+     "notes": {
+      "technical_execution": "Unhandled exception on reconnect."
+     },
+     "summary": "Incident rooms open correctly, but the runbook agent crashed on the second alert. Restart fixed it.",
+     "red_flags": [],
+     "at": 1793951347.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 8,
+      "creativity_impact": 7,
+      "presentation": 6
+     },
+     "notes": {},
+     "summary": "Good idea, crowded space. Video stops before the interesting part.",
+     "red_flags": [],
+     "at": 1793951407.8992074
+    }
+   },
+   "verdict": {
+    "decision": "maybe",
+    "score": 64,
+    "note": "promising, needs the reconnect fix",
+    "judge": "maya",
+    "at": 1793958967.8992074,
+    "provisional": 67.2
+   },
+   "provisional": 67.2,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [],
+   "created_at": 1793950447.8992074,
+   "updated_at": 1793973487.903009,
+   "rank": 3,
+   "label": "Case #004",
+   "url": null,
+   "final": 64.0,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "maya",
+   "first_pass_s": 960,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 1,
+   "owner": "apexxx01",
+   "repo": "jury",
+   "submitter": "user",
+   "room_id": "r1",
+   "room_name": "case-001-jury",
+   "status": "scored",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 10,
+      "technical_execution": 9,
+      "presentation": 7
+     },
+     "notes": {},
+     "summary": "Deterministic audit of apexxx01/jury@8f8dc47. Clean on secrets. 7/7 commits in the hackathon window.",
+     "at": 1793943997.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 7,
+      "creativity_impact": 7
+     },
+     "notes": {},
+     "summary": "Install, 38 tests and lint all pass on a clean clone with no fixes, but the end-to-end loop was not run from my clone and was only seen working on the author's own bench.",
+     "at": 1793944507.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 9,
+      "creativity_impact": 7,
+      "presentation": 6
+     },
+     "notes": {},
+     "summary": "",
+     "at": 1793944578.8992074
+    }
+   },
+   "verdict": null,
+   "provisional": 79.0,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [
+    "No demo video link in the README.",
+    "First commit is a 3,727-line drop on day three of the window, so the history alone cannot show it was built during the event; human should check",
+    "Conflict of interest: the bench is judging its own repo and its judges' instructions come from that repo"
+   ],
+   "created_at": 1793943967.8992074,
+   "updated_at": 1793973487.9028692,
+   "rank": 4,
+   "label": "Case #001",
+   "url": "https://github.com/apexxx01/jury",
+   "final": 79.0,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "maya",
+   "first_pass_s": 611,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": []
+  },
+  {
+   "number": 10,
+   "owner": "helpdesk-hq",
+   "repo": "support-swarm",
+   "submitter": "helpdesk",
+   "room_id": "r10",
+   "room_name": "case-010-support-swarm",
+   "status": "open",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 9,
+      "technical_execution": 8,
+      "presentation": 6
+     },
+     "notes": {
+      "use_of_switch": "Switch SDK calls and room ops found in source.",
+      "technical_execution": "Tests, lockfile and CI present.",
+      "presentation": "Thin README, no demo video."
+     },
+     "summary": "Deterministic audit of helpdesk-hq/support-swarm@c4410de. Clean on secrets. 33/33 commits in the hackathon window.",
+     "red_flags": [],
+     "at": 1793967047.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 8,
+      "creativity_impact": 8
+     },
+     "notes": {},
+     "summary": "Three agents split a ticket queue and escalate to a human room. Install took four minutes.",
+     "red_flags": [],
+     "at": 1793967767.8992074
+    }
+   },
+   "verdict": null,
+   "provisional": 79.0,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [],
+   "created_at": 1793967007.8992074,
+   "updated_at": 1793973487.9031482,
+   "rank": 5,
+   "label": "Case #010",
+   "url": null,
+   "final": 79.0,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "maya",
+   "first_pass_s": null,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 5,
+   "owner": "mergebot",
+   "repo": "pr-triage-room",
+   "submitter": "mergebot",
+   "room_id": "r5",
+   "room_name": "case-005-pr-triage-room",
+   "status": "scored",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 9,
+      "technical_execution": 8,
+      "presentation": 7
+     },
+     "notes": {
+      "use_of_switch": "Switch SDK calls and room ops found in source.",
+      "technical_execution": "Tests, lockfile and CI present.",
+      "presentation": "README with screenshots and a demo video link."
+     },
+     "summary": "Deterministic audit of mergebot/pr-triage-room@77fa0c4. Clean on secrets. 51/53 commits in the hackathon window.",
+     "red_flags": [],
+     "at": 1793954797.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 3,
+      "creativity_impact": 7
+     },
+     "notes": {
+      "technical_execution": "Blocked on undocumented GitHub App permissions."
+     },
+     "summary": "Could not get the webhook path working from a clean clone: the README skips the GitHub App setup.",
+     "red_flags": [],
+     "at": 1793956067.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 9,
+      "creativity_impact": 7,
+      "presentation": 7
+     },
+     "notes": {},
+     "summary": "Each PR gets a room with reviewer agents; clever use of targeted messages.",
+     "red_flags": [],
+     "at": 1793955867.8992074
+    }
+   },
+   "verdict": null,
+   "provisional": 72.2,
+   "complete": true,
+   "flagged": [
+    "technical_execution:jury-inspector:jury-auditor"
+   ],
+   "red_flags": [],
+   "created_at": 1793954767.8992074,
+   "updated_at": 1793973487.9030354,
+   "rank": 6,
+   "label": "Case #005",
+   "url": null,
+   "final": 72.2,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "dev",
+   "first_pass_s": 1300,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [
+    {
+     "criterion": "technical_execution",
+     "a": "jury-inspector",
+     "sa": 3,
+     "b": "jury-auditor",
+     "sb": 8
+    }
+   ],
+   "sample": true
+  },
+  {
+   "number": 6,
+   "owner": "notetakers",
+   "repo": "meeting-minutes",
+   "submitter": "notetakers",
+   "room_id": "r6",
+   "room_name": "case-006-meeting-minutes",
+   "status": "scored",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 7,
+      "technical_execution": 7,
+      "presentation": 6
+     },
+     "notes": {
+      "use_of_switch": "Switch SDK calls and room ops found in source.",
+      "technical_execution": "Tests, lockfile and CI present.",
+      "presentation": "Thin README, no demo video."
+     },
+     "summary": "Deterministic audit of notetakers/meeting-minutes@a5d3b10. Clean on secrets. 19/19 commits in the hackathon window.",
+     "red_flags": [],
+     "at": 1793951932.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 7,
+      "creativity_impact": 6
+     },
+     "notes": {},
+     "summary": "Works. Transcribes a call into a room document and pings owners of action items.",
+     "red_flags": [],
+     "at": 1793952587.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 7,
+      "creativity_impact": 5,
+      "presentation": 6
+     },
+     "notes": {},
+     "summary": "Solid but familiar. The Switch part is the action-item hand-off, which is the best bit.",
+     "red_flags": [],
+     "at": 1793952707.8992074
+    }
+   },
+   "verdict": null,
+   "provisional": 64.2,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [],
+   "created_at": 1793951887.8992074,
+   "updated_at": 1793973487.9030585,
+   "rank": 7,
+   "label": "Case #006",
+   "url": null,
+   "final": 64.2,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "maya",
+   "first_pass_s": 820,
+   "appeal_log": [
+    {
+     "by": "notetakers",
+     "text": "Action items are assigned to agents in other rooms; the Critic missed the cross-room hand-off in the video at 1:40.",
+     "at": 1793967007.8992074,
+     "previous": "maybe"
+    }
+   ],
+   "appeals": 1,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 11,
+   "owner": "dealflow",
+   "repo": "sales-room",
+   "submitter": "dealflow",
+   "room_id": "r11",
+   "room_name": "case-011-sales-room",
+   "status": "open",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 8,
+      "technical_execution": 6,
+      "presentation": 4
+     },
+     "notes": {
+      "use_of_switch": "Switch SDK calls and room ops found in source.",
+      "technical_execution": "No tests and no lockfile.",
+      "presentation": "Thin README, no demo video."
+     },
+     "summary": "Deterministic audit of dealflow/sales-room@18ab6f0. Clean on secrets. 17/17 commits in the hackathon window.",
+     "red_flags": [
+      "No demo video link in the README."
+     ],
+     "at": 1793970277.8992074
+    }
+   },
+   "verdict": null,
+   "provisional": 62.7,
+   "complete": false,
+   "flagged": [],
+   "red_flags": [
+    "No demo video link in the README."
+   ],
+   "created_at": 1793970247.8992074,
+   "updated_at": 1793973487.903159,
+   "rank": 8,
+   "label": "Case #011",
+   "url": null,
+   "final": 62.7,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "dev",
+   "first_pass_s": null,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 12,
+   "owner": "spendwise",
+   "repo": "expense-agent",
+   "submitter": "spendwise",
+   "room_id": "r12",
+   "room_name": "case-012-expense-agent",
+   "status": "open",
+   "scorecards": {},
+   "verdict": null,
+   "provisional": null,
+   "complete": false,
+   "flagged": [],
+   "red_flags": [],
+   "created_at": 1793973307.8992074,
+   "updated_at": 1793973487.9031677,
+   "rank": 9,
+   "label": "Case #012",
+   "url": null,
+   "final": null,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "maya",
+   "first_pass_s": null,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 7,
+   "owner": "peoplestack",
+   "repo": "onboarding-bot",
+   "submitter": "peoplestack",
+   "room_id": "r7",
+   "room_name": "case-007-onboarding-bot",
+   "status": "decided",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 0,
+      "technical_execution": 7,
+      "presentation": 5
+     },
+     "notes": {
+      "use_of_switch": "No trace of Switch in the repository.",
+      "technical_execution": "Tests, lockfile and CI present.",
+      "presentation": "Thin README, no demo video."
+     },
+     "summary": "Deterministic audit of peoplestack/onboarding-bot@3b9e5c2. Clean on secrets. 12/12 commits in the hackathon window.",
+     "red_flags": [
+      "No trace of Switch in the repository (rule: Switch must be central)."
+     ],
+     "at": 1793956957.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 6,
+      "creativity_impact": 5
+     },
+     "notes": {},
+     "summary": "A Slack bot with a checklist. Runs fine, but Switch is only mentioned in the README.",
+     "red_flags": [],
+     "at": 1793957407.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 2,
+      "creativity_impact": 5,
+      "presentation": 5
+     },
+     "notes": {},
+     "summary": "Switch is name-dropped, not used.",
+     "red_flags": [],
+     "at": 1793957447.8992074
+    }
+   },
+   "verdict": {
+    "decision": "pass",
+    "score": 38,
+    "note": "Switch isn't central",
+    "judge": "dev",
+    "at": 1793959607.8992074,
+    "provisional": 41.8
+   },
+   "provisional": 41.8,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [
+    "No trace of Switch in the repository (rule: Switch must be central)."
+   ],
+   "created_at": 1793956927.8992074,
+   "updated_at": 1793973487.903083,
+   "rank": 10,
+   "label": "Case #007",
+   "url": null,
+   "final": 38.0,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "dev",
+   "first_pass_s": 520,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 8,
+   "owner": "quickship",
+   "repo": "onboarding-bot-v2",
+   "submitter": "quickship",
+   "room_id": "r8",
+   "room_name": "case-008-onboarding-bot-v2",
+   "status": "decided",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 0,
+      "technical_execution": 7,
+      "presentation": 5
+     },
+     "notes": {
+      "use_of_switch": "No trace of Switch in the repository.",
+      "technical_execution": "Tests, lockfile and CI present.",
+      "presentation": "Thin README, no demo video."
+     },
+     "summary": "Deterministic audit of quickship/onboarding-bot-v2@3b9e5c2. Clean on secrets. 0/12 commits in the hackathon window.",
+     "red_flags": [
+      "No trace of Switch in the repository (rule: Switch must be central).",
+      "No commits inside the hackathon window (rule: the Switch workflow must be built during the event).",
+      "Possible copy: shares 12 commit(s) of git history and 97% of its distinctive code lines (2,140) also appear with **Case #007** `peoplestack/onboarding-bot`. A human should compare them."
+     ],
+     "at": 1793959472.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 6,
+      "creativity_impact": 4
+     },
+     "notes": {},
+     "summary": "Identical to another submission down to the commit hashes.",
+     "red_flags": [],
+     "at": 1793959897.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 1,
+      "creativity_impact": 2,
+      "presentation": 4
+     },
+     "notes": {},
+     "summary": "Same project as Case #007 under a new name.",
+     "red_flags": [],
+     "at": 1793959917.8992074
+    }
+   },
+   "verdict": {
+    "decision": "pass",
+    "score": 5,
+    "note": "copy of #007",
+    "judge": "maya",
+    "at": 1793960997.8992074,
+    "provisional": 34.2
+   },
+   "provisional": 34.2,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [
+    "No trace of Switch in the repository (rule: Switch must be central).",
+    "No commits inside the hackathon window (rule: the Switch workflow must be built during the event).",
+    "Possible copy: shares 12 commit(s) of git history and 97% of its distinctive code lines (2,140) also appear with **Case #007** `peoplestack/onboarding-bot`. A human should compare them."
+   ],
+   "created_at": 1793959447.8992074,
+   "updated_at": 1793973487.9031043,
+   "rank": 11,
+   "label": "Case #008",
+   "url": null,
+   "final": 5.0,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "maya",
+   "first_pass_s": 470,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  },
+  {
+   "number": 9,
+   "owner": "ghostteam",
+   "repo": "secret-sauce",
+   "submitter": "ghostteam",
+   "room_id": "r9",
+   "room_name": "case-009-secret-sauce",
+   "status": "decided",
+   "scorecards": {
+    "jury-auditor": {
+     "scores": {
+      "use_of_switch": 0,
+      "technical_execution": 0,
+      "presentation": 0
+     },
+     "notes": {
+      "use_of_switch": "clone failed",
+      "technical_execution": "clone failed",
+      "presentation": "clone failed"
+     },
+     "summary": "Could not clone ghostteam/secret-sauce: private, renamed or missing.",
+     "red_flags": [
+      "The repository could not be cloned (private, renamed or missing?)."
+     ],
+     "at": 1793961267.8992074
+    },
+    "jury-inspector": {
+     "scores": {
+      "technical_execution": 0,
+      "creativity_impact": 0
+     },
+     "notes": {},
+     "summary": "Nothing to run: the link 404s.",
+     "red_flags": [],
+     "at": 1793961547.8992074
+    },
+    "jury-critic": {
+     "scores": {
+      "use_of_switch": 0,
+      "creativity_impact": 0,
+      "presentation": 0
+     },
+     "notes": {},
+     "summary": "Can't judge a repo that isn't there.",
+     "red_flags": [],
+     "at": 1793961567.8992074
+    }
+   },
+   "verdict": {
+    "decision": "pass",
+    "score": 0,
+    "note": "repository is private",
+    "judge": "dev",
+    "at": 1793962287.8992074,
+    "provisional": 0.0
+   },
+   "provisional": 0.0,
+   "complete": true,
+   "flagged": [],
+   "red_flags": [
+    "The repository could not be cloned (private, renamed or missing?)."
+   ],
+   "created_at": 1793961247.8992074,
+   "updated_at": 1793973487.9031262,
+   "rank": 12,
+   "label": "Case #009",
+   "url": null,
+   "final": 0.0,
+   "judges": [
+    "jury-auditor",
+    "jury-inspector",
+    "jury-critic"
+   ],
+   "assignee": "dev",
+   "first_pass_s": 320,
+   "appeal_log": [],
+   "appeals": 0,
+   "nudged": [],
+   "disagreements": [],
+   "sample": true
+  }
+ ],
+ "generated_at": 1793973487.8992074
+}

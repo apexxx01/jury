@@ -3,256 +3,1173 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jury · Judging Floor</title>
+<title>Jury Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#ffffff; --ink:#000000; --red:#ff2a1a; --green:#00c46a; --dim:#6b6b6b; --void:#e9e9e9;
-  --rule:4px; --gap:clamp(14px,2vw,24px);
+  --bg:#ffffff; --fg:#0a0a0a; --mut:#5e5e5e; --faint:#a3a3a3; --line:#d9d9d9; --line2:#bdbdbd; --well:#f1f1ef;
+  --red:#e3170a; --red-ink:#c41408; --green:#00b35c; --green-ink:#007a3f;
+  --shadow:6px 6px 0 var(--fg);
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --disp:Archivo,"Arial Narrow",Arial,sans-serif;
+  --pad:clamp(16px,2.2vw,28px);
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#000000;--ink:#ffffff;--dim:#9a9a9a;--void:#1f1f1f}}
-:root[data-theme="dark"]{--paper:#000000;--ink:#ffffff;--dim:#9a9a9a;--void:#1f1f1f}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#000000; --fg:#f5f5f2; --mut:#9b9b9b; --faint:#5c5c5c; --line:#232323; --line2:#3a3a3a; --well:#0e0e0e;
+  --red:#ff3b2e; --red-ink:#ff5a4f; --green:#1fe07f; --green-ink:#2ee88a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#000000; --fg:#f5f5f2; --mut:#9b9b9b; --faint:#5c5c5c; --line:#232323; --line2:#3a3a3a; --well:#0e0e0e;
+  --red:#ff3b2e; --red-ink:#ff5a4f; --green:#1fe07f; --green-ink:#2ee88a; color-scheme:dark}
 *{box-sizing:border-box}
-html{background:var(--paper)}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:Archivo,"Arial Narrow",Arial,sans-serif;font-variant-numeric:tabular-nums;font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+html{background:var(--bg);scroll-behavior:smooth;scroll-padding-top:70px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--disp);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
 a{color:inherit}
-a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset:3px}
-.cond{font-stretch:62%}
-.exp{font-stretch:125%}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.mono{font-family:var(--mono)}
+.lbl{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.mut{color:var(--mut)}
+.red{color:var(--red-ink)} .green{color:var(--green-ink)}
+.big{font-weight:900;font-stretch:62%;line-height:.86;letter-spacing:-.01em}
+.hide{display:none!important}
+code{font-family:var(--mono);font-size:.92em}
 
-/* ticker: the one moving thing */
-.ticker{background:var(--ink);color:var(--paper);overflow:hidden;white-space:nowrap;border-bottom:var(--rule) solid var(--ink);font-weight:800;font-stretch:75%;font-size:15px;letter-spacing:.02em}
-.ticker .track{display:inline-block;padding:9px 0;animation:run 60s linear infinite}
-.ticker span{padding:0 22px}
+/* ── ticker ── */
+.ticker{background:var(--fg);color:var(--bg);overflow:hidden;white-space:nowrap;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.ticker .track{display:inline-block;padding:7px 0;animation:run 80s linear infinite}
+.ticker:hover .track{animation-play-state:paused}
+.ticker span{padding:0 18px}
 .ticker .r{color:var(--red)} .ticker .g{color:var(--green)}
 @keyframes run{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@media (prefers-reduced-motion: reduce){.ticker .track{animation:none}}
 
-/* masthead */
-header{display:grid;grid-template-columns:1fr auto;border-bottom:var(--rule) solid var(--ink)}
-.title{padding:var(--gap) var(--gap) 10px;min-width:0}
-.title .who{font-weight:700;font-size:15px}
-.title .who b{font-weight:900}
-h1{margin:6px 0 0;font-weight:900;font-stretch:62%;font-size:clamp(56px,11vw,168px);line-height:.82;letter-spacing:-.02em;word-spacing:.12em;text-transform:uppercase;word-break:break-word}
-.motto{font-weight:600;font-size:clamp(15px,1.6vw,19px);margin-top:12px;max-width:60ch}
-.live{border-left:var(--rule) solid var(--ink);padding:var(--gap);display:flex;flex-direction:column;justify-content:space-between;min-width:200px;font-weight:700}
-.live .dot{display:inline-block;width:12px;height:12px;background:var(--green);margin-right:8px;vertical-align:-1px}
-.live .stale .dot{background:var(--red)}
-.live time{display:block;font-weight:900;font-stretch:62%;font-size:44px;line-height:1}
+/* ── demo banner ── */
+.demo{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:8px var(--pad);background:repeating-linear-gradient(135deg,var(--bg) 0 10px,var(--well) 10px 20px);border-bottom:2px solid var(--fg);font-family:var(--mono);font-size:12px;font-weight:700;text-align:center}
+.demo b{background:var(--fg);color:var(--bg);padding:2px 7px}
 
-/* stat strip */
-.stats{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:var(--rule) solid var(--ink)}
-.stat{padding:14px var(--gap) 12px;border-right:var(--rule) solid var(--ink);min-width:0}
-.stat:last-child{border-right:0}
-.stat .n{font-weight:900;font-stretch:62%;font-size:clamp(44px,6vw,86px);line-height:.85}
-.stat .l{font-weight:700;font-size:14px;margin-top:6px}
-.stat.red .n{color:var(--red)} .stat.green .n{color:var(--green)}
+/* ── top bar ── */
+.top{position:sticky;top:0;z-index:40;display:flex;align-items:stretch;background:var(--bg);border-bottom:2px solid var(--fg);height:56px}
+.brand{display:flex;align-items:center;gap:10px;padding:0 var(--pad);border-right:2px solid var(--fg);text-decoration:none;flex:none}
+.mark{display:grid;place-items:center;width:30px;height:30px;background:var(--fg);color:var(--bg);font-weight:900;font-size:19px;font-stretch:62%}
+.brand .w{font-weight:900;font-size:24px;font-stretch:118%;letter-spacing:.02em}
+.nav{display:flex;align-items:stretch;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.nav::-webkit-scrollbar{display:none}
+.nav a{display:flex;align-items:center;padding:0 16px;text-decoration:none;border-right:1px solid var(--line);white-space:nowrap}
+.nav a:hover,.nav a.on{background:var(--fg);color:var(--bg)}
+.nav a .k{color:var(--faint);margin-right:6px}
+.nav a:hover .k,.nav a.on .k{color:inherit;opacity:.6}
+.tools{display:flex;align-items:stretch;flex:none}
+.tools>*{display:flex;align-items:center;gap:8px;padding:0 14px;border-left:2px solid var(--fg);background:none;border-top:0;border-bottom:0;border-right:0;cursor:pointer;white-space:nowrap}
+.tools button:hover{background:var(--fg);color:var(--bg)}
+.pulse{width:10px;height:10px;background:var(--green);border-radius:50%;box-shadow:0 0 0 0 var(--green);animation:pulse 2s infinite}
+.stale .pulse{background:var(--red);animation:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--green) 70%,transparent)}70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}
 
-/* rubric strip */
-.rubric{display:flex;border-bottom:var(--rule) solid var(--ink);font-weight:800}
-.rubric div{padding:8px 10px;border-right:2px solid var(--paper);background:var(--ink);color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
-.rubric div b{font-weight:900;font-stretch:62%;font-size:22px;margin-right:6px}
+/* ── hero ── */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 380px;border-bottom:2px solid var(--fg);position:relative}
+.hero .l{padding:calc(var(--pad)*1.2) var(--pad) var(--pad);background-image:radial-gradient(var(--line2) 1px,transparent 1.2px);background-size:18px 18px;background-position:-1px -1px;min-width:0}
+.kicker{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--fg);padding:3px 8px;background:var(--bg)}
+.chip.inv{background:var(--fg);color:var(--bg)}
+.chip.r{border-color:var(--red);color:var(--red-ink)}
+.chip.g{border-color:var(--green);color:var(--green-ink)}
+h1{margin:18px 0 0;font-weight:900;font-stretch:62%;font-size:clamp(54px,8.6vw,138px);line-height:.84;letter-spacing:-.015em;text-transform:uppercase}
+h1 .r{color:var(--red)} h1 .g{color:var(--green)}
+h1 .o{-webkit-text-stroke:2px var(--fg);color:transparent}
+.lede{max-width:66ch;font-size:clamp(15px,1.35vw,18px);font-weight:500;margin:18px 0 0;background:var(--bg);display:inline-block;padding:2px 0}
+.lede b{font-weight:800}
+.hero .side{border-left:2px solid var(--fg);display:grid;grid-template-rows:auto 1fr auto}
+.count{padding:var(--pad);border-bottom:2px solid var(--fg)}
+.count .n{font-family:var(--mono);font-weight:800;font-size:40px;letter-spacing:-.03em;line-height:1;margin-top:8px}
+.count .n i{font-style:normal;color:var(--faint)}
+.bar{height:10px;border:2px solid var(--fg);margin-top:12px;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--fg)}
+.benchbox{padding:14px var(--pad);display:grid;gap:7px;align-content:start}
+.agent{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;font-family:var(--mono);font-size:12.5px;font-weight:700}
+.agent .d{width:10px;height:10px;background:var(--green)}
+.agent .d.off{background:none;border:2px solid var(--red)}
+.agent .d.h{background:var(--fg);border-radius:50%}
+.agent span:last-child{color:var(--mut);font-weight:500}
+.tourbtn{display:flex;justify-content:space-between;align-items:center;padding:14px var(--pad);border-top:2px solid var(--fg);background:var(--fg);color:var(--bg);cursor:pointer;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left}
+.tourbtn:hover{background:var(--red);color:#fff}
+.tourbtn.tour-pulse{animation:tp 1.2s ease-in-out 4}
+@keyframes tp{50%{background:var(--red);color:#fff}}
+.tourbtn b{font-weight:900;font-size:22px;font-stretch:80%;text-transform:uppercase}
 
-/* body grid */
-main{display:grid;grid-template-columns:minmax(0,1fr) 360px}
-.ledger{border-right:var(--rule) solid var(--ink);min-width:0}
-aside{min-width:0}
+/* ── pipeline ── */
+.pipe{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border-bottom:2px solid var(--fg)}
+.stage{position:relative;padding:16px var(--pad) 18px;border-right:2px solid var(--fg);cursor:pointer;text-align:left;background:var(--bg);border-top:0;border-bottom:0;border-left:0;min-width:0}
+.stage:last-child{border-right:0}
+.stage::after{content:"";position:absolute;right:-13px;top:50%;width:22px;height:22px;background:var(--bg);border-top:2px solid var(--fg);border-right:2px solid var(--fg);transform:translateY(-50%) rotate(45deg);z-index:2}
+.stage:last-child::after{display:none}
+.stage:hover,.stage.on{background:var(--fg);color:var(--bg)}
+.stage:hover::after,.stage.on::after{background:var(--fg)}
+.stage .top2{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.stage .n{font-weight:900;font-stretch:62%;font-size:clamp(54px,6vw,88px);line-height:.85;margin-top:8px}
+.stage .t{font-weight:900;font-size:17px;font-stretch:100%;text-transform:uppercase;margin-top:6px}
+.stage p{margin:6px 0 0;font-size:13px;line-height:1.35;color:var(--mut);max-width:30ch}
+.stage:hover p,.stage.on p{color:inherit;opacity:.8}
+.stage.alert .n{color:var(--red)}
+.stage.alert:hover .n,.stage.alert.on .n{color:var(--red)}
+.split{display:flex;height:8px;margin-top:10px;gap:2px}
+.split i{display:block;height:100%}
 
-/* a case row */
-.case{display:grid;grid-template-columns:96px minmax(0,1fr) 190px;border-bottom:var(--rule) solid var(--ink)}
-.rank{border-right:var(--rule) solid var(--ink);font-weight:900;font-stretch:62%;font-size:84px;line-height:1;padding:10px 0 0;text-align:center}
-.case.out .rank{color:var(--red)}
-.cbody{padding:14px var(--gap) 16px;min-width:0}
-.repo{font-weight:900;font-stretch:118%;font-size:clamp(20px,2.4vw,30px);line-height:1.05;text-decoration:none;word-break:break-all}
-.repo:hover{text-decoration:underline;text-decoration-thickness:3px}
-.meta{font-weight:600;font-size:14px;color:var(--dim);margin-top:4px}
-.meta b{color:var(--ink)}
-.meters{display:grid;grid-template-columns:auto 1fr auto;gap:5px 14px;align-items:center;margin-top:14px;max-width:640px}
-.meters .k{font-weight:700;font-size:14px}
-.cells{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;height:16px}
-.cells i{background:var(--void)}
-.cells i.on{background:var(--ink)}
-.cells.none i{background:transparent;border:2px dashed var(--void)}
-.meters .v{font-weight:900;font-stretch:62%;font-size:22px;min-width:3ch;text-align:right}
-.flags{margin:14px 0 0;padding:0;list-style:none}
-.flags li{font-weight:700;font-size:14px;color:var(--red);padding:6px 0 6px 26px;position:relative;border-top:2px solid var(--red)}
-.flags li::before{content:"⚑";position:absolute;left:4px;top:5px}
-.bench{display:flex;flex-wrap:wrap;gap:0;margin-top:14px;border:2px solid var(--ink);width:max-content;max-width:100%}
-.bench span{font-weight:800;font-size:13px;padding:5px 10px;border-right:2px solid var(--ink)}
-.bench span:last-child{border-right:0}
-.bench span.done{background:var(--ink);color:var(--paper)}
-.bench span.done::before{content:"✓ "}
-details{margin-top:12px}
-summary{cursor:pointer;font-weight:900;font-size:14px;list-style:none;display:inline-block;border-bottom:3px solid var(--ink)}
-summary::-webkit-details-marker{display:none}
-details[open] summary{border-color:var(--red)}
-details p{margin:8px 0 0;font-size:15px;max-width:70ch}
-details p b{font-weight:900}
-.right{border-left:var(--rule) solid var(--ink);display:flex;flex-direction:column}
-.score{padding:12px 14px 8px;font-weight:900;font-stretch:62%;font-size:96px;line-height:.85;flex:1}
-.score small{font-size:26px;font-stretch:100%;font-weight:700;margin-left:2px}
-.score.pending{color:var(--void);-webkit-text-stroke:2px var(--ink)}
-.score .prov{display:block;font-size:13px;font-stretch:100%;font-weight:700;color:var(--dim);margin-top:8px;line-height:1.2}
-.stamp{font-weight:900;font-stretch:110%;font-size:17px;padding:10px 14px;border-top:var(--rule) solid var(--ink);text-align:center}
-.stamp.top{background:var(--green);color:#000}
-.stamp.out{background:var(--red);color:#fff}
-.stamp.mid{background:var(--ink);color:var(--paper)}
-.stamp.wait{background:var(--paper);color:var(--ink)}
-.stamp.work{background:repeating-linear-gradient(135deg,var(--ink) 0 8px,var(--paper) 8px 16px);color:var(--ink)}
-.stamp.work em{display:inline-block;background:var(--paper);padding:4px 8px;font-style:normal;line-height:1.15;border:2px solid var(--ink)}
-.note{padding:10px 14px;font-weight:600;font-size:13px;border-top:2px solid var(--ink)}
+/* ── KPI strip ── */
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-bottom:2px solid var(--fg)}
+.kpi{padding:14px var(--pad) 16px;border-right:1px solid var(--line2);min-width:0;position:relative}
+.kpi:last-child{border-right:0}
+.kpi .v{font-weight:900;font-stretch:62%;font-size:clamp(40px,4.4vw,64px);line-height:.9;margin-top:8px;display:flex;align-items:baseline;gap:6px;white-space:nowrap}
+.kpi .v.sm{font-size:clamp(32px,3.4vw,50px)}
+.kpi .v small{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--mut);letter-spacing:0}
+.kpi .s{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-top:6px}
+.kpi svg{display:block;margin-top:8px;width:100%;height:28px}
 
-/* docket */
-.box{border-bottom:var(--rule) solid var(--ink);padding:14px var(--gap) 16px}
-.box h2{margin:0 0 10px;font-weight:900;font-stretch:62%;font-size:40px;line-height:.9;text-transform:uppercase}
-.box .hint{font-size:13px;font-weight:600;color:var(--dim);margin:-4px 0 10px}
-.row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:2px solid var(--ink);font-weight:700;font-size:14px}
-.row span:last-child{text-align:right;flex:none}
-.row.r{color:var(--red);border-color:var(--red)}
-.cal{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-weight:700;font-size:13px}
-.lean{position:relative;height:16px;background:var(--void)}
-.lean::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
-.lean i{position:absolute;top:0;bottom:0}
-.empty{font-weight:700;font-size:15px}
-.empty code{font-weight:900;border-bottom:3px solid var(--ink)}
-.void{padding:60px var(--gap);font-weight:900;font-stretch:62%;font-size:clamp(40px,7vw,90px);line-height:.9}
-.void small{display:block;font-stretch:100%;font-size:17px;font-weight:700;margin-top:16px}
-footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px var(--gap);font-weight:700;font-size:13px;border-top:var(--rule) solid var(--ink)}
+/* ── alerts ── */
+.alerts{border-bottom:2px solid var(--fg);display:grid;grid-template-columns:170px minmax(0,1fr)}
+.alerts .h{background:var(--red);color:#fff;padding:14px var(--pad);display:flex;flex-direction:column;justify-content:center}
+.alerts .h .big{font-size:56px;color:#fff}
+.alerts.calm .h{background:var(--green);color:#000}
+.alerts.calm .h .big{color:#000}
+.alist{display:flex;flex-wrap:wrap;align-content:center;gap:8px;padding:12px var(--pad)}
+.al{display:flex;align-items:center;gap:8px;border:2px solid var(--fg);padding:7px 11px;background:var(--bg);cursor:pointer;font-weight:700;font-size:13.5px;text-align:left;box-shadow:3px 3px 0 var(--fg);transition:transform .08s,box-shadow .08s}
+.al:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--fg)}
+.al:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--fg)}
+.al .ic{font-family:var(--mono);font-weight:800;width:20px;height:20px;display:grid;place-items:center;background:var(--fg);color:var(--bg);font-size:11px;flex:none}
+.al.r{border-color:var(--red);box-shadow:3px 3px 0 var(--red)}
+.al.r .ic{background:var(--red);color:#fff}
 
-@media (max-width:1100px){
-  main{grid-template-columns:1fr}
-  .ledger{border-right:0}
-  aside{border-top:var(--rule) solid var(--ink)}
-  .stats{grid-template-columns:repeat(3,1fr)}
-  .stat:nth-child(3){border-right:0}
-  .stat:nth-child(-n+3){border-bottom:var(--rule) solid var(--ink)}
+/* ── section frame ── */
+section.sec{border-bottom:2px solid var(--fg)}
+.sechead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:calc(var(--pad)*1.3) var(--pad) 14px;border-bottom:2px solid var(--fg)}
+.sechead h2{margin:4px 0 0;font-weight:900;font-stretch:62%;font-size:clamp(44px,5.4vw,82px);line-height:.85;text-transform:uppercase}
+.sechead p{margin:8px 0 0;max-width:68ch;color:var(--mut);font-size:14.5px}
+.grid{display:grid;gap:0}
+.panel{border-right:2px solid var(--fg);border-bottom:2px solid var(--fg);min-width:0;display:flex;flex-direction:column}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;background:var(--fg);color:var(--bg)}
+.ph .i{display:grid;place-items:center;width:20px;height:20px;border:1.5px solid var(--bg);border-radius:50%;font-size:11px;cursor:help;flex:none}
+.pb{padding:14px;flex:1;min-width:0}
+.pd{font-size:13px;color:var(--mut);margin:0 0 10px}
+.ins{grid-template-columns:repeat(12,minmax(0,1fr))}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.ins .panel:nth-child(3),.ins .panel:last-child{border-right:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:12px;height:12px}
+.sw-g{background:var(--green)}.sw-k{background:var(--fg)}.sw-r{background:var(--red)}
+.sw-h{background:repeating-linear-gradient(135deg,var(--fg) 0 2px,transparent 2px 5px);outline:1.5px solid var(--fg);outline-offset:-1.5px}
+.sw-o{border:2px solid var(--fg)}
+svg text{font-family:var(--mono);fill:var(--mut);font-size:10.5px}
+svg .ax{stroke:var(--line2);stroke-width:1}
+svg .gl{stroke:var(--line);stroke-width:1}
+.hit{cursor:pointer}
+.empty{padding:26px 6px;font-family:var(--mono);font-size:12.5px;color:var(--mut);text-align:center;border:2px dashed var(--line2)}
+
+/* ── leaderboard ── */
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px var(--pad);border-bottom:2px solid var(--fg);position:sticky;top:56px;background:var(--bg);z-index:20}
+.search{display:flex;align-items:center;border:2px solid var(--fg);height:38px;min-width:240px;flex:1;max-width:420px}
+.search span{padding:0 10px;font-family:var(--mono);font-weight:800}
+.search input{border:0;outline:0;background:none;height:100%;flex:1;min-width:0;font-family:var(--mono);font-size:13px}
+.search kbd{margin-right:8px}
+kbd{font-family:var(--mono);font-size:10.5px;font-weight:700;border:1.5px solid var(--line2);border-bottom-width:3px;padding:1px 5px;color:var(--mut)}
+.seg{display:flex;border:2px solid var(--fg);height:38px;overflow-x:auto;scrollbar-width:none}
+.seg button{border:0;border-right:1px solid var(--line2);background:var(--bg);padding:0 12px;cursor:pointer;white-space:nowrap;font-family:var(--mono);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.seg button:last-child{border-right:0}
+.seg button b{font-weight:800;margin-left:4px;color:var(--mut)}
+.seg button:hover{background:var(--well)}
+.seg button.on{background:var(--fg);color:var(--bg)}
+.seg button.on b{color:inherit;opacity:.65}
+select.sel{height:38px;border:2px solid var(--fg);background:var(--bg);padding:0 10px;font-family:var(--mono);font-size:12px;font-weight:700;text-transform:uppercase;cursor:pointer}
+.clear{border:0;background:none;text-decoration:underline;cursor:pointer;font-family:var(--mono);font-size:12px;font-weight:700}
+.board{width:100%;border-collapse:collapse}
+.board th{position:sticky;top:120px;background:var(--bg);z-index:5;text-align:left;padding:9px 12px;border-bottom:2px solid var(--fg);white-space:nowrap}
+.board th.sort{cursor:pointer}
+.board th.sort:hover{text-decoration:underline}
+.board td{padding:12px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.board tbody tr{cursor:pointer;transition:background .06s}
+.board tbody tr:hover,.board tbody tr.sel{background:var(--well)}
+.board tbody tr.sel td:first-child{box-shadow:inset 6px 0 0 var(--red)}
+.rk{font-weight:900;font-stretch:62%;font-size:46px;line-height:.8;width:64px;text-align:center}
+.rk.lost{color:var(--red)}
+.sub .nm{font-weight:900;font-stretch:112%;font-size:19px;line-height:1.1;word-break:break-word}
+.sub .nm .own{font-weight:500;color:var(--mut)}
+.sub .mt{font-family:var(--mono);font-size:11.5px;color:var(--mut);margin-top:3px}
+.tag{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:1px 5px;border:1.5px solid currentColor;margin-left:6px;vertical-align:2px}
+.scorecell{white-space:nowrap}
+.sc{font-weight:900;font-stretch:62%;font-size:44px;line-height:.85}
+.sc small{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--mut);margin-left:2px}
+.sc.na{color:var(--faint)}
+.delta{font-family:var(--mono);font-size:11px;font-weight:800;margin-left:6px}
+.stars{position:relative;display:inline-block;font-size:15px;letter-spacing:1px;line-height:1;margin-top:5px;color:var(--line2)}
+.stars::before{content:"★★★★★"}
+.stars i{position:absolute;inset:0 auto 0 0;overflow:hidden;white-space:nowrap;color:var(--fg)}
+.stars i::before{content:"★★★★★"}
+.stars.g i{color:var(--green)} .stars.r i{color:var(--red)}
+.mini{display:grid;grid-template-columns:repeat(4,22px);gap:5px;align-items:end;height:44px}
+.mini div{position:relative;height:100%;background:var(--well);outline:1px solid var(--line2);outline-offset:-1px}
+.mini div i{position:absolute;left:0;right:0;bottom:0;background:var(--fg)}
+.mini div.none{background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line) 3px 4px)}
+.mini div.lo i{background:var(--red)}
+.minil{display:grid;grid-template-columns:repeat(4,22px);gap:5px;font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--mut);text-align:center;margin-top:3px}
+.bench{display:flex;gap:3px}
+.bench span{display:grid;place-items:center;width:24px;height:24px;border:2px solid var(--fg);font-family:var(--mono);font-size:11px;font-weight:800}
+.bench span.done{background:var(--fg);color:var(--bg)}
+.bench span.fight{border-color:var(--red);background:var(--red);color:#fff}
+.fl{font-family:var(--mono);font-weight:800;font-size:13px}
+.fl.r{color:var(--red-ink)}
+.stamp{display:inline-block;font-weight:900;font-stretch:105%;font-size:13px;letter-spacing:.03em;text-transform:uppercase;padding:6px 10px;border:2px solid var(--fg);white-space:nowrap;transform:rotate(-2deg)}
+.stamp.st-top{background:var(--green);border-color:var(--green);color:#000}
+.stamp.st-out{background:var(--red);border-color:var(--red);color:#fff}
+.stamp.st-mid{background:var(--fg);color:var(--bg)}
+.stamp.st-wait{border-color:var(--red);color:var(--red-ink);animation:blink 1.6s steps(2) infinite}
+.stamp.st-work{background:repeating-linear-gradient(135deg,var(--bg) 0 6px,var(--well) 6px 12px);transform:none}
+@keyframes blink{50%{background:var(--red);color:#fff}}
+.go{font-family:var(--mono);font-weight:800;font-size:18px}
+.mstamp{display:none;margin-top:8px}
+.noresults{padding:40px var(--pad);font-family:var(--mono);color:var(--mut);text-align:center}
+.void{padding:60px var(--pad)}
+.void .big{font-size:clamp(48px,8vw,110px);text-transform:uppercase}
+.void ol{font-family:var(--mono);font-size:14px;line-height:1.9;margin:20px 0 0;padding-left:22px}
+
+/* ── judges ── */
+.jgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.jcard{border-right:2px solid var(--fg);border-bottom:2px solid var(--fg);padding:16px 16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.jcard:nth-child(4n){border-right:0}
+.jcard .nm{font-weight:900;font-stretch:62%;font-size:46px;line-height:.85;text-transform:uppercase}
+.jcard .kind{align-self:flex-start}
+.jcard p{margin:0;font-size:13.5px;color:var(--mut)}
+.jstats{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--fg);margin-top:auto}
+.jstats div{padding:8px 0 0}
+.jstats div:nth-child(odd){border-right:1px solid var(--line2);padding-right:8px}
+.jstats div:nth-child(even){padding-left:10px}
+.jstats div:nth-child(n+3){border-top:1px solid var(--line2);margin-top:8px}
+.jstats .v{font-weight:900;font-stretch:62%;font-size:32px;line-height:1}
+.owns{display:flex;flex-wrap:wrap;gap:4px}
+.owns span{font-family:var(--mono);font-size:10.5px;font-weight:700;border:1.5px solid var(--fg);padding:1px 6px}
+.heat{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;table-layout:fixed}
+.heat th{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.heat tr>th:first-child{width:88px}
+.heat th{font-weight:700;color:var(--mut);text-align:left;padding:6px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.heat td{padding:0;border:2px solid var(--bg);height:44px;text-align:center;font-weight:800;font-size:15px}
+.heat td.na{background:repeating-linear-gradient(135deg,transparent 0 4px,var(--line) 4px 5px);color:var(--faint);font-size:12px}
+.lean{display:grid;grid-template-columns:110px minmax(0,1fr) 120px;gap:8px 12px;align-items:center;font-family:var(--mono);font-size:12px;font-weight:700}
+.lean .tr{position:relative;height:22px;background:var(--well)}
+.lean .tr::after{content:"";position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:var(--fg)}
+.lean .tr i{position:absolute;top:3px;bottom:3px}
+.lean .ax{grid-column:2;display:flex;justify-content:space-between;color:var(--faint);font-size:10px}
+.matrix{width:100%;border-collapse:collapse;font-size:13px}
+.matrix th,.matrix td{border:1px solid var(--line2);padding:8px 10px;text-align:center}
+.matrix th:first-child,.matrix td:first-child{text-align:left}
+.matrix td.y{font-weight:900;font-size:16px}
+.matrix th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut)}
+
+/* ── activity ── */
+.act{grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:start}
+.act .cpanel{position:sticky;top:58px;max-height:calc(100vh - 66px);overflow:auto}
+.feed{list-style:none;margin:0;padding:0}
+.feed li{display:grid;grid-template-columns:74px 26px minmax(0,1fr);gap:10px;align-items:start;padding:9px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.feed li:hover{background:var(--well)}
+.feed time{font-family:var(--mono);font-size:11.5px;color:var(--mut);padding-top:2px}
+.feed .ic{display:grid;place-items:center;width:22px;height:22px;font-family:var(--mono);font-size:11px;font-weight:800;background:var(--fg);color:var(--bg)}
+.feed .ic.r{background:var(--red);color:#fff}.feed .ic.g{background:var(--green);color:#000}.feed .ic.o{background:none;color:var(--fg);border:2px solid var(--fg)}
+.feed .tx{font-size:13.5px}
+.feed .tx small{display:block;color:var(--mut);font-size:12px;margin-top:1px}
+.more{width:100%;padding:12px;border:0;border-top:2px solid var(--fg);background:var(--bg);cursor:pointer;font-family:var(--mono);font-weight:800;text-transform:uppercase;font-size:12px}
+.more:hover{background:var(--fg);color:var(--bg)}
+.cmds{display:grid;gap:0}
+.cmdgrp{border-bottom:2px solid var(--fg);padding:12px 14px}
+.cmdgrp:last-child{border-bottom:0}
+.cmd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;padding:8px 0;cursor:pointer}
+.cmd code{font-weight:700;font-size:12.5px;word-break:break-word}
+.cmd small{display:block;color:var(--mut);font-size:12px;margin-top:1px;font-family:var(--disp)}
+.cmd .cp{font-family:var(--mono);font-size:10.5px;font-weight:800;border:1.5px solid var(--fg);padding:2px 6px}
+.cmd:hover .cp{background:var(--fg);color:var(--bg)}
+.switch{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.prim{padding:16px;border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);min-width:0}
+.prim:nth-child(4n){border-right:0}
+.prim code{display:inline-block;background:var(--fg);color:var(--bg);padding:2px 7px;font-weight:700;font-size:12px}
+.prim p{margin:8px 0 0;font-size:13.5px;color:var(--mut)}
+
+footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:16px var(--pad) 22px;font-family:var(--mono);font-size:11.5px;color:var(--mut)}
+
+/* ── drawer ── */
+.scrim{position:fixed;inset:0;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(2px);z-index:60;opacity:0;pointer-events:none;transition:opacity .15s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(720px,100vw);background:var(--bg);border-left:3px solid var(--fg);z-index:61;transform:translateX(102%);transition:transform .2s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;box-shadow:-10px 0 0 color-mix(in srgb,var(--fg) 12%,transparent)}
+.drawer.on{transform:none}
+.dh{display:flex;align-items:stretch;border-bottom:2px solid var(--fg);flex:none}
+.dh .lab{flex:1;display:flex;align-items:center;gap:10px;padding:0 16px;min-width:0}
+.dh button{border:0;border-left:2px solid var(--fg);background:var(--bg);width:52px;height:52px;cursor:pointer;font-family:var(--mono);font-weight:800;font-size:16px}
+.dh button:hover{background:var(--fg);color:var(--bg)}
+.db{overflow:auto;flex:1}
+.dsec{padding:16px 18px;border-bottom:2px solid var(--fg)}
+.dsec>.lbl{display:block;margin-bottom:10px}
+.dtitle{font-weight:900;font-stretch:112%;font-size:clamp(26px,4vw,38px);line-height:1;word-break:break-word}
+.dtitle .own{font-weight:400;color:var(--mut)}
+.dmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.dscore{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:center}
+.dscore .big{font-size:120px}
+.dscore .big small{font-family:var(--mono);font-size:16px;color:var(--mut);font-weight:700;letter-spacing:0}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:2px solid var(--fg)}
+.facts div{padding:8px 10px;border-right:1px solid var(--line2)}
+.facts div:last-child{border-right:0}
+.facts b{display:block;font-weight:900;font-stretch:62%;font-size:28px;line-height:1}
+.two{display:grid;grid-template-columns:330px minmax(0,1fr);gap:18px;align-items:start}
+.receipt{font-family:var(--mono);font-size:12px;border:2px solid var(--fg);padding:12px 14px;background:var(--well);position:relative}
+.receipt .row{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.receipt .row b{font-weight:800}
+.receipt .sub2{color:var(--mut);font-size:11px;padding:0 0 4px}
+.receipt hr{border:0;border-top:1.5px dashed var(--fg);margin:8px 0}
+.receipt .tot{font-size:15px;font-weight:800}
+.rlegend{display:flex;gap:14px;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--mut);margin-top:6px;flex-wrap:wrap;align-items:center}
+.rlegend i{display:inline-block;width:14px;height:3px;background:var(--fg);vertical-align:middle;margin-right:5px}
+.rlegend i.f{background:none;border-top:2px dashed var(--mut);height:0}
+.cards{width:100%;border-collapse:collapse;font-size:13px}
+.cards th,.cards td{border:1px solid var(--line2);padding:8px;text-align:center}
+.cards th{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.cards td:first-child,.cards th:first-child{text-align:left}
+.cards td.s{font-weight:900;font-size:18px;font-stretch:80%}
+.cards td.x{outline:3px solid var(--red);outline-offset:-3px;color:var(--red-ink)}
+.cards td.no{color:var(--faint)}
+.cards tr.pend td{background:repeating-linear-gradient(135deg,transparent 0 6px,var(--well) 6px 12px);color:var(--mut)}
+.note{border-left:4px solid var(--fg);padding:4px 0 4px 12px;margin:10px 0 0}
+.note b{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.note p{margin:3px 0 0;font-size:14px}
+.note ul{margin:4px 0 0;padding-left:18px;font-size:13px;color:var(--mut)}
+.flags{list-style:none;margin:0;padding:0}
+.flags li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;padding:8px 0;border-top:2px solid var(--red);font-weight:600;font-size:13.5px;color:var(--red-ink)}
+.flags li::before{content:"!";display:grid;place-items:center;width:18px;height:18px;background:var(--red);color:#fff;font-family:var(--mono);font-weight:800;font-size:12px}
+.tl{list-style:none;margin:0;padding:0;position:relative}
+.tl::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--fg)}
+.tl li{position:relative;padding:0 0 12px 24px;font-size:13.5px}
+.tl li::before{content:"";position:absolute;left:0;top:4px;width:12px;height:12px;background:var(--bg);border:2px solid var(--fg)}
+.tl li.g::before{background:var(--green);border-color:var(--green)}
+.tl li.r::before{background:var(--red);border-color:var(--red)}
+.tl li.k::before{background:var(--fg)}
+.tl time{font-family:var(--mono);font-size:11px;color:var(--mut);display:block}
+.builder{background:var(--fg);color:var(--bg);padding:16px 18px}
+.builder .lbl{color:var(--bg);opacity:.7}
+.vseg{display:flex;border:2px solid var(--bg);margin-top:8px}
+.vseg button{flex:1;padding:10px;border:0;border-right:2px solid var(--bg);background:var(--fg);color:var(--bg);cursor:pointer;font-weight:900;text-transform:uppercase;font-size:15px;letter-spacing:.03em}
+.vseg button:last-child{border-right:0}
+.vseg button.on{background:var(--bg);color:var(--fg)}
+.vseg button.on.vt{background:var(--green);color:#000}
+.vseg button.on.vo{background:var(--red);color:#fff}
+.brow{display:grid;grid-template-columns:auto minmax(0,1fr) 64px;gap:12px;align-items:center;margin-top:14px}
+.brow input[type=range]{width:100%;accent-color:var(--red)}
+.brow .sv{font-weight:900;font-stretch:62%;font-size:36px;text-align:right}
+.brow label{font-family:var(--mono);font-size:11.5px;font-weight:700;display:flex;gap:6px;align-items:center;cursor:pointer}
+.nin{width:100%;margin-top:12px;background:none;border:2px solid var(--bg);padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--bg)}
+.nin::placeholder{color:var(--bg);opacity:.45}
+.out{display:grid;grid-template-columns:minmax(0,1fr) auto;margin-top:12px;border:2px solid var(--bg)}
+.out code{padding:12px;font-size:13.5px;font-weight:700;word-break:break-word;background:var(--bg);color:var(--fg)}
+.out button{border:0;background:var(--red);color:#fff;font-weight:900;padding:0 18px;cursor:pointer;text-transform:uppercase;font-size:14px}
+.out button:hover{background:var(--green);color:#000}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.quick button{border:1.5px solid var(--bg);background:none;color:var(--bg);padding:5px 9px;font-family:var(--mono);font-size:11.5px;font-weight:700;cursor:pointer}
+.quick button:hover{background:var(--bg);color:var(--fg)}
+.hintline{font-family:var(--mono);font-size:11px;opacity:.65;margin-top:10px}
+.osel{border:2px solid var(--fg);background:var(--bg);font-family:var(--mono);font-size:11px;font-weight:700;padding:4px 6px;max-width:100%}
+
+/* ── tooltip / toast / tour / help ── */
+#tip{position:fixed;z-index:90;pointer-events:none;background:var(--fg);color:var(--bg);font-family:var(--mono);font-size:11.5px;line-height:1.45;padding:8px 10px;max-width:300px;opacity:0;transition:opacity .08s;box-shadow:4px 4px 0 var(--red)}
+#tip.on{opacity:1}
+#tip b{font-weight:800}
+.toast{visibility:hidden;position:fixed;left:50%;bottom:22px;transform:translate(-50%,140%);z-index:95;background:var(--green);color:#000;font-family:var(--mono);font-weight:800;padding:12px 18px;border:2px solid #000;box-shadow:5px 5px 0 #000;transition:transform .18s}
+.toast.on{visibility:visible;transform:translate(-50%,0)}
+.tour-focus{position:relative;z-index:71!important;outline:4px solid var(--red)!important;outline-offset:-4px;box-shadow:0 0 0 9999px color-mix(in srgb,var(--bg) 72%,transparent)}
+.tourcard{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:80;width:min(560px,calc(100vw - 24px));background:var(--fg);color:var(--bg);border:3px solid var(--fg);box-shadow:8px 8px 0 var(--red)}
+.tourcard .in{padding:16px 18px}
+.tourcard h3{margin:6px 0 0;font-weight:900;font-stretch:62%;font-size:44px;line-height:.9;text-transform:uppercase}
+.tourcard p{margin:8px 0 0;font-size:14.5px}
+.tourcard .ft{display:flex;border-top:2px solid var(--bg)}
+.tourcard .ft button{flex:1;border:0;border-right:2px solid var(--bg);background:none;color:var(--bg);padding:12px;cursor:pointer;font-family:var(--mono);font-weight:800;text-transform:uppercase;font-size:12px}
+.tourcard .ft button:last-child{border-right:0;background:var(--red);color:#fff}
+.tourcard .dots{display:flex;gap:4px;margin-top:12px}
+.tourcard .dots i{width:18px;height:4px;background:var(--bg);opacity:.3}
+.tourcard .dots i.on{opacity:1}
+.help{position:fixed;inset:0;z-index:85;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 70%,transparent)}
+.help .in{background:var(--bg);border:3px solid var(--fg);box-shadow:var(--shadow);padding:20px 24px;width:min(460px,calc(100vw - 24px))}
+.help h3{margin:0 0 12px;font-weight:900;font-stretch:62%;font-size:44px;line-height:.9;text-transform:uppercase}
+.help .k{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line2);font-size:14px}
+
+@media (max-width:1180px){
+  .hero{grid-template-columns:1fr}
+  .hero .side{border-left:0;border-top:2px solid var(--fg);grid-template-columns:1fr 1fr;grid-template-rows:auto auto}
+  .hero .side .count{border-right:2px solid var(--fg)}
+  .hero .side .tourbtn{grid-column:1/-1}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kpi:nth-child(3){border-right:0}
+  .kpi:nth-child(-n+3){border-bottom:1px solid var(--line2)}
+  .ins .c4,.ins .c5,.ins .c7{grid-column:span 6}
+  .ins .c3{grid-column:span 12}
+  .ins .c8,.ins .c12{grid-column:span 12}
+  .ins .panel{border-right:2px solid var(--fg)!important}
+  .ins .panel:nth-child(2n){border-right:0!important}
+  .ins .panel.c12,.ins .panel.c8{border-right:0!important}
+  .jgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .jcard:nth-child(2n){border-right:0}
+  .switch{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .prim:nth-child(2n){border-right:0}
+  .nav a .k{display:none}
+}
+@media (max-width:900px){
+  .pipe{grid-template-columns:1fr}
+  .stage{border-right:0;border-bottom:2px solid var(--fg);display:grid;grid-template-columns:110px minmax(0,1fr);gap:0 14px;align-items:center}
+  .stage:last-child{border-bottom:0}
+  .stage::after{right:auto;left:40px;top:auto;bottom:-13px;transform:rotate(135deg)}
+  .stage .n{grid-row:1/4;grid-column:1;margin:0}
+  .stage .top2,.stage .t,.stage p,.stage .split{grid-column:2}
+  .act{grid-template-columns:1fr}
+  .act .panel{border-right:0}
+  .two{grid-template-columns:1fr}
+  .board .c-break,.board .c-bench{display:none}
+  .alerts{grid-template-columns:1fr}
+  .alerts .h{flex-direction:row;align-items:baseline;gap:12px}
 }
 @media (max-width:640px){
-  header{grid-template-columns:1fr}
-  .live{border-left:0;border-top:var(--rule) solid var(--ink);flex-direction:row;align-items:center;gap:16px}
-  .case{grid-template-columns:56px minmax(0,1fr)}
-  .rank{font-size:52px}
-  .right{grid-column:1 / -1;border-left:0;border-top:var(--rule) solid var(--ink);flex-direction:row;align-items:stretch}
-  .score{font-size:64px;flex:none;padding-right:20px}
-  .stamp{border-top:0;border-left:var(--rule) solid var(--ink);flex:1;display:flex;align-items:center;justify-content:center}
-  .note{display:none}
-  .rubric{flex-wrap:wrap}
-  .rubric div{flex:1 1 45% !important;white-space:normal}
-  .live time{font-size:32px;white-space:nowrap}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .stat{border-bottom:var(--rule) solid var(--ink)}
-  .stat:nth-child(odd){border-right:var(--rule) solid var(--ink)}
-  .stat:nth-child(even){border-right:0}
+  .top{height:52px}
+  .brand .w{display:none}
+  .tools .hidem{display:none}
+  .toolbar{top:52px}
+  .board th{top:0;position:static}
+  .hero .side{grid-template-columns:1fr}
+  .hero .side .count{border-right:0}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi{border-right:1px solid var(--line2)!important;border-bottom:1px solid var(--line2)}
+  .kpi:nth-child(2n){border-right:0!important}
+  .ins .c3,.ins .c4,.ins .c5,.ins .c6,.ins .c7{grid-column:span 12}
+  .ins .panel{border-right:0!important}
+  .jgrid,.switch{grid-template-columns:1fr}
+  .jcard,.prim{border-right:0!important}
+  .board .c-flags,.board .c-go,.board .c-status{display:none}
+  .mstamp{display:block}
+  .sub .nm{font-size:16px}
+  .board td{padding:10px 8px}
+  .rk{font-size:34px;width:40px}
+  .sc{font-size:34px}
+  .search{min-width:0;max-width:none;flex-basis:100%}
+  .dscore{grid-template-columns:1fr}
+  .dscore .big{font-size:96px}
+  .lean{grid-template-columns:80px minmax(0,1fr) 86px}
 }
 </style>
 </head>
 <body>
 <div class="ticker" aria-hidden="true"><div class="track" id="ticker"></div></div>
-<header>
-  <div class="title">
-    <div class="who"><b>Jury</b>, the judging floor for</div>
-    <h1 id="event">Loading the floor</h1>
-    <div class="motto">Every submission gets a room. AI judges gather the evidence and argue it out. A human gives every verdict.</div>
+<div class="demo hide" id="demo"><b>DEMO FLOOR</b><span>Recorded data: sample teams plus Jury's own dry run (Case #001). <code>jury up</code> shows your live floor.</span></div>
+
+<header class="top">
+  <a class="brand" href="#overview" aria-label="Jury, back to top"><span class="mark">J/</span><span class="w">JURY</span></a>
+  <nav class="nav lbl" id="nav">
+    <a href="#overview"><span class="k">01</span>Overview</a>
+    <a href="#insights"><span class="k">02</span>Insights</a>
+    <a href="#board"><span class="k">03</span>Leaderboard</a>
+    <a href="#judges"><span class="k">04</span>Bench</a>
+    <a href="#activity"><span class="k">05</span>Activity</a>
+    <a href="#switch"><span class="k">06</span>On Switch</a>
+  </nav>
+  <div class="tools lbl">
+    <span id="live" class="hidem" data-tip="The console polls Jury every 3 seconds. Red means Jury stopped answering."><span class="pulse"></span><span id="livetxt">Live</span></span>
+    <button id="themeBtn" aria-label="Switch light or dark" data-tip="Light or dark (T)"><span id="themeTxt">Light</span></button>
+    <button id="helpBtn" aria-label="Keyboard shortcuts" data-tip="Keyboard shortcuts (?)">?</button>
   </div>
-  <div class="live" id="live"><div><span class="dot"></span>Live</div><time id="clock">--:--</time><div id="updated">waiting for the first update</div></div>
 </header>
-<section class="stats" id="stats" aria-label="Floor totals"></section>
-<div class="rubric" id="rubric" aria-label="Rubric weights"></div>
+
 <main>
-  <section class="ledger" id="cases" aria-label="Cases ranked"></section>
-  <aside id="docket" aria-label="Docket"></aside>
+<section id="overview">
+  <div class="hero">
+    <div class="l">
+      <div class="kicker lbl" id="kicker"></div>
+      <h1 id="headline">Loading the floor</h1>
+      <p class="lede" id="lede"><b>Jury is a judging floor that lives in your team chat.</b> Every submission gets its own room on Switch. Three AI judges gather evidence and argue it out. A human gives every verdict.</p>
+    </div>
+    <div class="side">
+      <div class="count"><span class="lbl mut" id="cdlabel">Submissions close in</span><div class="n" id="countdown">--:--:--</div><div class="bar" data-tip="How much of the hackathon window has passed"><i id="windowbar"></i></div><div class="lbl mut" style="margin-top:8px" id="windowtxt"></div></div>
+      <div class="benchbox" id="benchbox"></div>
+      <button class="tourbtn" id="tourBtn"><span><span class="lbl" style="opacity:.7">New here?</span><br><b>Take the 40-second tour</b></span><span class="big" style="font-size:40px">→</span></button>
+    </div>
+  </div>
+  <div class="pipe" id="pipe" aria-label="Where every case is"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="alerts" id="alerts"></div>
+</section>
+
+<section class="sec" id="insights">
+  <div class="sechead"><div><span class="lbl mut">02 / Insights</span><h2>The floor in charts</h2><p>Hover anything for the numbers behind it. Click a bar, a dot or a row to open that case.</p></div></div>
+  <div class="grid ins">
+    <div class="panel c5"><div class="ph lbl"><span>Score distribution</span><span class="i" data-tip="Every case's current score (the human's if they set one, else the panel's), in bins of 10. Colour is the outcome. The dashed line is the rubric's shortlist bar.">i</span></div><div class="pb" id="ch-hist"></div></div>
+    <div class="panel c4"><div class="ph lbl"><span>Criteria across the floor</span><span class="i" data-tip="For each rubric criterion: the floor's average (black block) and the range from the weakest to the strongest case (grey band).">i</span></div><div class="pb" id="ch-crit"></div></div>
+    <div class="panel c3"><div class="ph lbl"><span>Panel vs human</span><span class="i" data-tip="Each dot is a decided case: the AI panel's score across, the human's final score up. On the diagonal the human agreed; above it they were more generous.">i</span></div><div class="pb" id="ch-scatter"></div></div>
+    <div class="panel c12"><div class="ph lbl"><span>Case timeline</span><span class="i" data-tip="One row per case, left to right in time. Hatched: judges at work. Outlined: waiting on a human. The block at the end is the verdict. Small squares are scorecards landing (A Auditor, I Inspector, C Critic); a red diamond is an appeal.">i</span></div><div class="pb" id="ch-gantt"></div></div>
+  </div>
+</section>
+
+<section class="sec" id="board">
+  <div class="sechead"><div><span class="lbl mut">03 / Leaderboard</span><h2>Every case, ranked</h2><p>Ranked by verdict first (shortlist, maybe, undecided, pass), then by score. Stars are the score out of 100 on a five-star scale. Click a row for the full case file and a ready-to-paste verdict.</p></div></div>
+  <div class="toolbar">
+    <label class="search"><span>/</span><input id="q" type="search" placeholder="Search repo, team, judge, flag…" autocomplete="off" aria-label="Search cases"><kbd>/</kbd></label>
+    <div class="seg" id="filters" role="tablist" aria-label="Filter cases"></div>
+    <select class="sel" id="sort" aria-label="Sort cases">
+      <option value="rank">Sort: rank</option>
+      <option value="score">Sort: score</option>
+      <option value="new">Sort: newest</option>
+      <option value="fast">Sort: fastest panel</option>
+      <option value="flags">Sort: most flags</option>
+    </select>
+    <button class="clear hide" id="clear">clear filters</button>
+  </div>
+  <div id="boardwrap"></div>
+</section>
+
+<section class="sec" id="judges">
+  <div class="sechead"><div><span class="lbl mut">04 / The bench</span><h2>Who judges what</h2><p>Three AI judges, each owning part of the rubric, and a human who owns the verdict. The Auditor is plain code, so it cannot be argued with. The others are agents on Switch and can be swapped for any agent you like.</p></div></div>
+  <div class="jgrid" id="jcards"></div>
+  <div class="grid ins">
+    <div class="panel c4"><div class="ph lbl"><span>Who scores what</span><span class="i" data-tip="From the rubric file. Two judges per criterion, so no single model decides a score.">i</span></div><div class="pb" id="ch-matrix"></div></div>
+    <div class="panel c4"><div class="ph lbl"><span>Average score given</span><span class="i" data-tip="Mean score each judge gave per criterion across every case. Darker is higher. A column that differs a lot between judges is where they disagree.">i</span></div><div class="pb" id="ch-heat"></div></div>
+    <div class="panel c4"><div class="ph lbl"><span>Judge lean</span><span class="i" data-tip="Each AI judge's own score minus the human's final score, averaged over the cases with a human score. Right of centre is too generous. Within 3 points is green.">i</span></div><div class="pb" id="ch-lean"></div></div>
+  </div>
+</section>
+
+<section class="sec" id="activity">
+  <div class="sechead"><div><span class="lbl mut">05 / Activity</span><h2>What just happened</h2><p>Everything the bench did, newest first. On the right is every command Clerk understands. Click one to copy it, then paste it into chat.</p></div>
+    <div class="seg" id="feedf"></div></div>
+  <div class="grid act">
+    <div class="panel"><div class="ph lbl"><span>Event log</span><span id="feedcount"></span></div><ul class="feed" id="feed"></ul><button class="more hide" id="more">Show more</button></div>
+    <div class="panel cpanel" style="border-right:0"><div class="ph lbl" style="position:sticky;top:0;z-index:2"><span>Talk to Clerk</span><span>click to copy</span></div><div class="cmds" id="cmds"></div></div>
+  </div>
+</section>
+
+<section class="sec" id="switch">
+  <div class="sechead"><div><span class="lbl mut">06 / On Switch</span><h2>What Switch does here</h2><p>Jury has no database of its own for the conversation. Switch holds the rooms, the agents, the documents and the history. Jury keeps a small file mapping cases to rooms.</p></div></div>
+  <div class="switch" id="prims"></div>
+</section>
 </main>
-<footer><span>Jury on Switch. Clerk opens the rooms, the Auditor checks facts, the Inspector runs the code, the Critic weighs the idea.</span><span id="foot"></span></footer>
+<footer><span id="foot">Jury</span><span>Clerk opens rooms · Auditor checks facts · Inspector runs code · Critic weighs the idea · a human decides</span></footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Case file" aria-hidden="true">
+  <div class="dh"><div class="lab lbl" id="dlab"></div><button id="dprev" aria-label="Previous case" data-tip="Previous case ([)">←</button><button id="dnext" aria-label="Next case" data-tip="Next case (])">→</button><button id="dclose" aria-label="Close" data-tip="Close (Esc)">✕</button></div>
+  <div class="db" id="dbody"><div id="dyn"></div>
+    <div class="builder" id="builder">
+      <span class="lbl">Give the verdict · paste this in the case room</span>
+      <div class="vseg" id="vseg"></div>
+      <div class="brow"><label><input type="checkbox" id="keep"> keep panel score</label><input type="range" id="vscore" min="0" max="100" step="1" aria-label="Score"><span class="sv" id="vsv">0</span></div>
+      <input class="nin" id="vnote" placeholder="note for the record (optional)" maxlength="200">
+      <div class="out"><code id="vout"></code><button id="vcopy">Copy</button></div>
+      <div class="quick" id="quick"></div>
+      <div class="hintline">Verdicts are given in chat so they're on the record in Switch, under the judge's own name.</div>
+    </div>
+  </div>
+</aside>
+<div id="tip" role="tooltip"></div>
+<div class="toast" id="toast">Copied</div>
+<div id="tourcard" class="tourcard hide" role="dialog" aria-label="Tour"></div>
+<div id="help" class="help hide" role="dialog" aria-label="Keyboard shortcuts"><div class="in"><h3>Shortcuts</h3>
+  <div class="k"><span>Search cases</span><kbd>/</kbd></div>
+  <div class="k"><span>Move down / up the leaderboard</span><span><kbd>j</kbd> <kbd>k</kbd></span></div>
+  <div class="k"><span>Open the selected case</span><kbd>Enter</kbd></div>
+  <div class="k"><span>Previous / next case in the file</span><span><kbd>[</kbd> <kbd>]</kbd></span></div>
+  <div class="k"><span>Close whatever is open</span><kbd>Esc</kbd></div>
+  <div class="k"><span>Light / dark</span><kbd>t</kbd></div>
+  <div class="k"><span>Tour</span><kbd>g</kbd></div>
+  <div class="k"><span>This help</span><kbd>?</kbd></div>
+</div></div>
+
 <script>
+"use strict";
 const $ = (id) => document.getElementById(id);
-const md = (s) => String(s ?? "").replace(/\*\*|`/g, "");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const fmtT = (t) => t == null ? "–" : (t >= 3600 ? `${Math.floor(t/3600)}h ${Math.floor(t%3600/60)}m` : t >= 60 ? `${Math.floor(t/60)}m ${String(t%60).padStart(2,"0")}s` : `${t}s`);
-const OPEN = new Set();
-document.addEventListener("toggle", (e) => { const d = e.target; if (d instanceof HTMLDetailsElement && d.dataset.case) d.open ? OPEN.add(d.dataset.case) : OPEN.delete(d.dataset.case); }, true);
-let last = 0;
+const md = (s) => String(s ?? "").replace(/\*\*|`/g, "");
+const short = (j) => String(j||"").replace(/^jury-/, "");
+const INIT = {"jury-auditor":"A","jury-inspector":"I","jury-critic":"C"};
+const ini = (j) => INIT[j] || short(j).slice(0,1).toUpperCase();
+const sum = (a) => a.reduce((x,y)=>x+y,0);
+const mean = (a) => a.length ? sum(a)/a.length : null;
+const median = (a) => { if (!a.length) return null; const b=[...a].sort((x,y)=>x-y); return b[Math.floor(b.length/2)]; };
+const dur = (t) => { if (t==null) return "–"; t=Math.max(0,Math.round(t)); if (t>=86400) return `${Math.floor(t/86400)}d ${Math.floor(t%86400/3600)}h`; if (t>=3600) return `${Math.floor(t/3600)}h ${String(Math.floor(t%3600/60)).padStart(2,"0")}m`; if (t>=60) return `${Math.floor(t/60)}m ${String(t%60).padStart(2,"0")}s`; return `${t}s`; };
+const hhmm = (ts) => new Date(ts*1000).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+const ago = (ts) => dur(nowS() - ts) + " ago";
+const nowS = () => Date.now()/1000;
+const tryLS = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch(e) { return null; } };
 
-function means(c){ const s={}; for (const card of Object.values(c.scorecards||{})) for (const [k,v] of Object.entries(card.scores||{})) (s[k] ||= []).push(v); const o={}; for (const [k,v] of Object.entries(s)) o[k]=v.reduce((a,b)=>a+b,0)/v.length; return o; }
+const UI = { data:null, sig:"", filter:"all", q:"", sort:"rank", range:null, sel:-1, open:null, overlay:"floor", feedF:"all", feedN:22,
+             b:{decision:null, score:null, keep:false, note:""}, lastOk:0 };
+
+// ── derived data ──────────────────────────────────────────────────────────
+function means(c){ const s={}; for (const card of Object.values(c.scorecards||{})) for (const [k,v] of Object.entries(card.scores||{})) (s[k] ||= []).push(v); const o={}; for (const [k,v] of Object.entries(s)) o[k]=mean(v); return o; }
 function ownScore(card, crit){ let w=0,t=0; for (const c of crit){ const v=(card.scores||{})[c.id]; if (v!=null){ w+=c.weight; t+=c.weight*v/10; } } return w ? t*100/w : null; }
-function cells(v){ if (v==null) return `<div class="cells none">${"<i></i>".repeat(10)}</div>`; const n=Math.round(v); return `<div class="cells">${Array.from({length:10},(_,i)=>`<i class="${i<n?"on":""}"></i>`).join("")}</div>`; }
-function stamp(c, verdicts){
-  if (c.verdict){ const i=verdicts.indexOf(c.verdict.decision); const cls = i===0?"top":(i===verdicts.length-1?"out":"mid"); return `<div class="stamp ${cls}">${esc(c.verdict.decision.toUpperCase())}</div>`; }
-  if (c.status==="scored") return `<div class="stamp wait">Needs a human</div>`;
-  return `<div class="stamp work"><em>${c.complete?"Judges at work":"Panel incomplete"}</em></div>`;
+function stage(c){
+  if (c.verdict) return "decided";
+  if (c.status === "scored") return "human";
+  const n = Object.keys(c.scorecards||{}).length;
+  return n === 0 ? "filed" : "panel";
+}
+function outcome(c, V){ if (!c.verdict) return c.status==="scored" ? "wait" : "work"; const i=V.indexOf(c.verdict.decision); return i===0 ? "top" : (i===V.length-1 ? "out" : "mid"); }
+function isCopy(c){ return (c.red_flags||[]).some(f => /^Possible copy/i.test(f)); }
+function copyOf(c){ const f=(c.red_flags||[]).find(f => /^Possible copy/i.test(f)); const m = f && f.match(/Case #0*(\d+)/); return m ? +m[1] : null; }
+function override(c){ return c.verdict && c.verdict.score!=null && c.provisional!=null ? c.verdict.score - c.provisional : null; }
+function readyAt(c){ return c.first_pass_s!=null ? c.created_at + c.first_pass_s : null; }
+function stars(score, cls=""){ const w = score==null ? 0 : Math.max(0, Math.min(100, score)); return `<span class="stars ${cls}" aria-label="${score==null?"no rating":(w/20).toFixed(1)+" of 5 stars"}"><i style="width:${w}%"></i></span>`; }
+function stampHTML(c, V){
+  const o = outcome(c, V);
+  if (o==="wait") return `<span class="stamp st-wait">Needs a human</span>`;
+  if (o==="work") return `<span class="stamp st-work">${Object.keys(c.scorecards||{}).length ? "Judging" : "Filed"}</span>`;
+  return `<span class="stamp st-${o}">${esc(c.verdict.decision)}</span>`;
+}
+function nm(c){ return `<span class="own">${esc(c.owner)}/</span>${esc(c.repo)}`; }
+
+// ── tooltip ───────────────────────────────────────────────────────────────
+const tip = $("tip");
+document.addEventListener("mouseover", (e) => { const t = e.target.closest("[data-tip]"); if (!t) { tip.classList.remove("on"); return; } tip.innerHTML = t.dataset.tipHtml ? t.dataset.tip : esc(t.dataset.tip); tip.classList.add("on"); });
+document.addEventListener("mousemove", (e) => { if (!tip.classList.contains("on")) return; const r = tip.getBoundingClientRect(); let x = e.clientX + 14, y = e.clientY + 16; if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14; if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 12; tip.style.left = x+"px"; tip.style.top = y+"px"; });
+document.addEventListener("scroll", () => tip.classList.remove("on"), true);
+function T(html){ return `data-tip="${esc(html)}" data-tip-html="1"`; }
+
+function toast(msg){ const t=$("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(()=>t.classList.remove("on"), 1600); }
+async function copy(text){
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch(e) {
+    try { const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); ok = document.execCommand("copy"); ta.remove(); } catch(e2) {}
+  }
+  toast(ok ? "Copied: " + (text.length > 44 ? text.slice(0,44)+"…" : text) : "Couldn't copy. Select it and copy by hand.");
 }
 
-function render(s){
+// ── header bits ───────────────────────────────────────────────────────────
+function renderHero(s){
+  const cs = s.cases, V = s.rubric.verdicts;
+  const waiting = cs.filter(c => stage(c)==="human").length;
+  const judging = cs.filter(c => ["filed","panel"].includes(stage(c))).length;
+  const decided = cs.filter(c => c.verdict).length;
+  const set = s.settings || {};
+  $("kicker").innerHTML = [
+    `<span class="chip inv">Live judging floor</span>`,
+    s.rubric.event_url ? `<a class="chip" href="${esc(s.rubric.event_url)}" target="_blank" rel="noopener">${esc(s.rubric.name)} ↗</a>` : `<span class="chip">${esc(s.rubric.name)}</span>`,
+    set.intake_closed ? `<span class="chip r" data-tip="Intake is closed: new links are refused. '@jury-clerk open intake' reopens it.">■ Intake closed</span>` : `<span class="chip g" data-tip="Intake is open: any GitHub link pasted in #${esc(s.rooms.intake)} becomes a case.">● Intake open</span>`,
+    `<span class="chip" data-tip="The two Switch rooms everyone sees. Each case also gets its own room.">#${esc(s.rooms.intake)} · #${esc(s.rooms.floor)}</span>`,
+  ].join("");
+  if (!cs.length) $("headline").innerHTML = `The floor<br>is <span class="o">empty</span>.`;
+  else {
+    const a = `${cs.length} case${cs.length===1?"":"s"}`;
+    const b = waiting ? `<span class="r">${waiting} need${waiting===1?"s":""} you.</span>` : (judging ? `${judging} in the room.` : `<span class="g">All decided.</span>`);
+    $("headline").innerHTML = `${a} on the floor.<br>${b}`;
+  }
+  $("lede").innerHTML = cs.length
+    ? `<b>Jury is a judging floor that lives in your team chat.</b> Every submission gets its own room on Switch, where three AI judges gather evidence and argue it out. A human gives every verdict. Right now: <b>${judging}</b> being judged, <b>${waiting}</b> waiting on a human, <b>${decided}</b> decided.`
+    : `<b>Jury is a judging floor that lives in your team chat.</b> Paste a GitHub link in <b>#${esc(s.rooms.intake)}</b> and Clerk opens a room for it, the bench judges it, and it lands here.`;
+  // bench presence
+  const b = s.bench || {}, present = new Set(b.present || []);
+  const role = {"jury-clerk":"opens rooms, keeps score","jury-auditor":"checks the facts","jury-inspector":"runs the code","jury-critic":"weighs the idea"};
+  const rows = [[b.clerk||"jury-clerk", true], [b.auditor||"jury-auditor", true], ...(b.judges||[]).map(j=>[j, present.has(j)])]
+    .map(([n,on]) => `<div class="agent" ${T(on?`<b>${esc(n)}</b> is registered on Switch.`:`<b>${esc(n)}</b> isn't on this Switch server yet. In Switch Console: Templates → Jury bench → Create.`)}><span class="d ${on?"":"off"}"></span><span>${esc(n)}</span><span>${on?esc(role[n]||"judge"):"not on server"}</span></div>`);
+  for (const h of (b.humans||[])) rows.push(`<div class="agent"><span class="d h"></span><span>@${esc(h)}</span><span>human judge</span></div>`);
+  $("benchbox").innerHTML = `<span class="lbl mut">On the bench</span>` + rows.join("");
+}
+function tickClock(){
+  const s = UI.data; if (!s || !s.settings) return;
+  const st = Date.parse(s.settings.window_start)/1000, en = Date.parse(s.settings.window_end)/1000, n = nowS();
+  let label, left;
+  if (n < st) { label = "Submissions open in"; left = st - n; }
+  else if (n < en) { label = "Submissions close in"; left = en - n; }
+  else { label = "Submissions closed"; left = 0; }
+  $("cdlabel").textContent = label;
+  const d = Math.floor(left/86400), h = Math.floor(left%86400/3600), m = Math.floor(left%3600/60), sec = Math.floor(left%60);
+  $("countdown").innerHTML = left <= 0 ? "00:00:00" : `${d?`${d}<i>d</i> `:""}${String(h).padStart(2,"0")}<i>:</i>${String(m).padStart(2,"0")}<i>:</i>${String(sec).padStart(2,"0")}`;
+  const pct = Math.max(0, Math.min(1, (n - st) / (en - st)));
+  $("windowbar").style.width = (pct*100).toFixed(2) + "%";
+  $("windowtxt").textContent = `${Math.round(pct*100)}% of the window gone · ends ${new Date(en*1000).toLocaleString([], {weekday:"short", hour:"2-digit", minute:"2-digit"})}`;
+  const stale = UI.lastOk && Date.now() - UI.lastOk > 15000;
+  $("live").classList.toggle("stale", !!stale);
+  $("livetxt").textContent = s.demo ? "Demo" : (stale ? "Offline" : "Live");
+}
+
+// ── pipeline + KPIs + alerts ──────────────────────────────────────────────
+function renderPipe(s){
+  const cs = s.cases, V = s.rubric.verdicts;
+  const by = (st) => cs.filter(c => stage(c) === st);
+  const audited = cs.filter(c => (c.scorecards||{})[s.bench?.auditor||"jury-auditor"]).length;
+  const fights = sum(cs.map(c => (c.disagreements||[]).length));
+  const dec = by("decided");
+  const tally = V.map(v => [v, dec.filter(c => c.verdict.decision === v).length]);
+  const col = (i) => i===0 ? "var(--green)" : (i===V.length-1 ? "var(--red)" : "var(--fg)");
+  const split = dec.length ? `<div class="split">${tally.map(([v,n],i)=> n ? `<i style="flex:${n};background:${col(i)}" ${T(`<b>${n}</b> ${esc(v)}`)}></i>` : "").join("")}</div>` : "";
+  const lastHour = cs.filter(c => nowS() - c.created_at < 3600).length;
+  const stages = [
+    ["all", "01", "Filed", cs.length, `Link pasted in #${s.rooms.intake}. Clerk opens a private case room and invites the bench.`, `${lastHour} in the last hour`],
+    ["filed", "02", "Audited", audited, "The Auditor clones the repo and checks Switch wiring, tests, the commit window, secrets and copies.", `${by("filed").length} not started`],
+    ["panel", "03", "Panel", by("panel").length, "Inspector runs the code, Critic weighs the idea. A gap of 4+ points makes them argue it out.", `${fights} open split${fights===1?"":"s"}`],
+    ["human", "04", "Needs a human", by("human").length, "Every scorecard is in. Clerk tallies the rubric and pings the assigned human judge.", by("human").length ? `oldest waiting ${dur(Math.max(...by("human").map(c => nowS() - (readyAt(c)||c.created_at))))}` : "nobody waiting"],
+    ["decided", "05", "Verdict", dec.length, `A human decides: ${V.join(", ")}. Jury never gives a verdict on its own.`, `${tally[0][1]} ${tally[0][0]}`],
+  ];
+  $("pipe").innerHTML = stages.map(([f, k, t, n, p, sub]) => `<button class="stage ${f==="human"&&n?"alert":""} ${UI.filter===f&&f!=="all"?"on":""}" data-filter="${f}" ${T(`Click to show these cases on the leaderboard`)}>
+      <div class="top2 lbl"><span>${k}</span><span class="mut" style="color:inherit;opacity:.65">${esc(sub)}</span></div>
+      <div class="n">${n}</div><div class="t">${t}</div><p>${esc(p)}</p>${f==="decided"?split:""}</button>`).join("");
+}
+function spark(cs){
+  if (cs.length < 2) return "";
+  const ts = cs.map(c => c.created_at).sort((a,b)=>a-b), t0 = ts[0], t1 = Math.max(nowS(), ts[ts.length-1]);
+  const W = 200, H = 28, pts = [[0,H]];
+  ts.forEach((t,i) => { const x = (t - t0)/(t1 - t0 || 1)*W; pts.push([x, H - (i/(ts.length))*H]); pts.push([x, H - ((i+1)/ts.length)*H + 1]); });
+  pts.push([W, 1]);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts.map(p=>p.join(",")).join(" ")}" fill="none" stroke="var(--fg)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function renderKPIs(s){
+  const cs = s.cases, V = s.rubric.verdicts, crit = s.rubric.criteria;
+  const finals = cs.map(c => c.final).filter(v => v!=null);
+  const avg = mean(finals);
+  const fp = cs.map(c => c.first_pass_s).filter(v => v!=null);
+  const dec = cs.filter(c => c.verdict), top = dec.filter(c => c.verdict.decision === V[0]).length;
+  const ov = cs.map(override).filter(v => v!=null), big = ov.filter(v => Math.abs(v) >= 5);
+  // agreement: criteria scored by 2+ judges where the spread is under the gap
+  let pairs = 0, agree = 0; const gap = s.settings?.disagreement_gap ?? 4;
+  for (const c of cs) for (const k of crit) { const v = Object.values(c.scorecards||{}).map(x => (x.scores||{})[k.id]).filter(x => x!=null); if (v.length >= 2) { pairs++; if (Math.max(...v) - Math.min(...v) < gap) agree++; } }
+  const K = [
+    ["Cases filed", `${cs.length}`, "", spark(cs), "Cumulative filings over time"],
+    ["Floor average", avg==null ? "–" : avg.toFixed(0), "/100", `<div style="margin-top:8px">${stars(avg)}</div>`, `${finals.length} scored case${finals.length===1?"":"s"}`],
+    ["Median first pass", fp.length ? dur(median(fp)) : "–", "", "", fp.length ? `filed → every scorecard in · fastest ${dur(Math.min(...fp))}` : "time from filing to a full panel"],
+    ["Shortlist rate", dec.length ? Math.round(top/dec.length*100) : "–", dec.length ? "%" : "", "", `${top} of ${dec.length} decided`],
+    ["Human overrides", `${big.length}`, `/${ov.length}`, "", ov.length ? `moved the panel by 5+ · avg ${ov.length?(mean(ov)>=0?"+":"")+mean(ov).toFixed(1):"–"} pts` : "verdicts that change the panel's score"],
+    ["Panel agreement", pairs ? Math.round(agree/pairs*100) : "–", pairs ? "%" : "", "", `${agree}/${pairs} shared criteria within ${gap} pts`],
+  ];
+  $("kpis").innerHTML = K.map(([l, v, u, extra, sub]) => `<div class="kpi"><span class="lbl mut">${l}</span><div class="v ${String(v).length>5?"sm":""}">${v}<small>${u}</small></div>${extra}<div class="s">${esc(sub)}</div></div>`).join("");
+}
+function alertsOf(s){
+  const cs = s.cases, out = [], rem = (s.settings?.remind_minutes || 30) * 60;
+  for (const c of cs) {
+    const cp = copyOf(c);
+    if (isCopy(c)) out.push(["r", "≠", `Possible copy: #${String(c.number).padStart(3,"0")} ↔ #${String(cp??"?").padStart(3,"0")}`, c.number, `Shared git history or code with another case. ${esc(md((c.red_flags||[]).find(f=>/^Possible copy/i.test(f))||""))}`]);
+    for (const d of (c.disagreements||[])) { const k = s.rubric.criteria.find(x => x.id === d.criterion); out.push(["r", "⚔", `Split on #${String(c.number).padStart(3,"0")}: ${k?k.label:d.criterion} ${d.sa} vs ${d.sb}`, c.number, `${esc(d.a)} says ${d.sa}, ${esc(d.b)} says ${d.sb}. Clerk asked them to argue it out in the room.`]); }
+    if (stage(c) === "human") { const w = nowS() - (readyAt(c) || c.created_at); out.push([w > rem ? "r" : "", "⏱", `#${String(c.number).padStart(3,"0")} waiting ${dur(w)}${c.assignee?` on @${c.assignee}`:""}`, c.number, `Every scorecard is in and nobody has given a verdict. Clerk reminds the judge every ${s.settings?.remind_minutes||30} min.`]); }
+    if ((c.appeals||0) && !c.verdict) out.push(["r", "↺", `Appeal on #${String(c.number).padStart(3,"0")}`, c.number, esc((c.appeal_log||[]).slice(-1)[0]?.text || "")]);
+    if ((c.red_flags||[]).some(f => /could not be cloned/i.test(f)) && !c.verdict) out.push(["r", "×", `#${String(c.number).padStart(3,"0")} can't be cloned`, c.number, "Private, renamed or missing. The Auditor filed zeros."]);
+  }
+  return out;
+}
+function renderAlerts(s){
+  const a = alertsOf(s);
+  const el = $("alerts"); el.classList.toggle("calm", !a.length);
+  el.innerHTML = `<div class="h"><span class="lbl">${a.length ? "Needs attention" : "All clear"}</span><span class="big">${a.length || "✓"}</span></div>
+    <div class="alist">${a.length ? a.map(([k, ic, t, n, tp]) => `<button class="al ${k}" data-open="${n}" ${T(tp)}><span class="ic">${ic}</span>${esc(t)}</button>`).join("") : `<span class="mono mut" style="font-size:13px">No copies, no splits, nobody waiting. The bench is caught up.</span>`}</div>`;
+}
+
+// ── charts ────────────────────────────────────────────────────────────────
+const W = (id) => Math.max(260, $(id).clientWidth - 28);
+const HATCH = `<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="var(--bg)"/><rect width="2.2" height="6" fill="var(--fg)"/></pattern></defs>`;
+
+function chartHist(s){
+  const cs = s.cases, V = s.rubric.verdicts, w = W("ch-hist"), h = 230, m = {l:28, r:8, t:24, b:28};
+  const bins = Array.from({length:10}, () => ({top:[], mid:[], wait:[], out:[]}));
+  for (const c of cs) { if (c.final==null) continue; const i = Math.min(9, Math.floor(c.final/10)); const o = outcome(c, V); bins[i][o==="work"?"wait":o].push(c); }
+  const maxN = Math.max(1, ...bins.map(b => b.top.length+b.mid.length+b.wait.length+b.out.length));
+  const iw = w - m.l - m.r, ih = h - m.t - m.b, bw = iw/10;
+  const y = (n) => m.t + ih - n/maxN*ih;
+  let g = "";
+  for (let n = 0; n <= maxN; n += Math.max(1, Math.ceil(maxN/4))) g += `<line class="gl" x1="${m.l}" x2="${w-m.r}" y1="${y(n)}" y2="${y(n)}"/><text x="${m.l-6}" y="${y(n)+3.5}" text-anchor="end">${n}</text>`;
+  const fill = {top:"var(--green)", mid:"var(--fg)", wait:"url(#hatch)", out:"var(--red)"};
+  const name = {top:V[0], mid:V.slice(1,-1).join("/")||"maybe", wait:"undecided", out:V[V.length-1]};
+  bins.forEach((b, i) => {
+    let acc = 0; const x = m.l + i*bw + 3;
+    for (const k of ["out","wait","mid","top"]) {
+      const n = b[k].length; if (!n) continue;
+      const y0 = y(acc), y1 = y(acc+n);
+      const list = b[k].map(c => `#${String(c.number).padStart(3,"0")} ${esc(c.repo)} (${Math.round(c.final)})`).join("<br>");
+      g += `<rect class="hit" data-open="${b[k][0].number}" x="${x}" y="${y1}" width="${bw-6}" height="${Math.max(0, y0-y1-2)}" fill="${fill[k]}" ${k==="wait"?'stroke="var(--fg)" stroke-width="1.5"':""} ${T(`<b>${i*10}–${i===9?100:i*10+9}: ${n} ${esc(name[k])}</b><br>${list}`)}/>`;
+      acc += n;
+    }
+    g += `<text x="${m.l + i*bw + bw/2}" y="${h-m.b+15}" text-anchor="middle">${i*10}</text>`;
+  });
+  const sx = m.l + (s.rubric.shortlist_at/100)*iw;
+  g += `<line x1="${sx}" x2="${sx}" y1="${m.t-10}" y2="${m.t+ih}" stroke="var(--fg)" stroke-width="2" stroke-dasharray="5 4"/><text x="${sx+5}" y="${m.t-12}" style="fill:var(--fg);font-weight:700">shortlist bar ${s.rubric.shortlist_at}</text>`;
+  g += `<line class="ax" x1="${m.l}" x2="${w-m.r}" y1="${m.t+ih}" y2="${m.t+ih}" style="stroke:var(--fg);stroke-width:2"/>`;
+  $("ch-hist").innerHTML = (cs.some(c => c.final!=null) ? `<svg width="${w}" height="${h}" role="img" aria-label="Score distribution">${HATCH}${g}</svg>` : `<div class="empty">No scores yet</div>`)
+    + `<div class="legend"><span><i class="sw-g"></i>${esc(V[0])}</span><span><i class="sw-k"></i>${esc(name.mid)}</span><span><i class="sw-h"></i>undecided</span><span><i class="sw-r"></i>${esc(V[V.length-1])}</span></div>`;
+}
+function chartCrit(s){
+  const crit = s.rubric.criteria, cs = s.cases;
+  const rows = crit.map(k => { const v = cs.map(c => means(c)[k.id]).filter(x => x!=null); return {k, v, m: mean(v), lo: v.length?Math.min(...v):null, hi: v.length?Math.max(...v):null}; });
+  if (!rows.some(r => r.v.length)) { $("ch-crit").innerHTML = `<div class="empty">No scorecards yet</div>`; return; }
+  $("ch-crit").innerHTML = rows.map(r => `<div style="margin-bottom:14px" ${T(`<b>${esc(r.k.label)}</b> · ${r.k.weight}% of the score<br>floor average ${r.m==null?"–":r.m.toFixed(1)}/10<br>range ${r.lo==null?"–":r.lo.toFixed(1)} to ${r.hi==null?"–":r.hi.toFixed(1)} over ${r.v.length} case(s)<br>scored by ${esc(r.k.judges.map(short).join(" + "))}`)}>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-weight:800;font-size:14px">${esc(r.k.label)} <span class="mono mut" style="font-size:11px">${r.k.weight}%</span></span><span class="big" style="font-size:30px">${r.m==null?"–":r.m.toFixed(1)}</span></div>
+      <div style="position:relative;height:16px;background:var(--well);margin-top:4px;outline:1px solid var(--line2);outline-offset:-1px">
+        ${r.lo!=null?`<i style="position:absolute;top:0;bottom:0;left:${r.lo*10}%;width:${Math.max(.6,(r.hi-r.lo)*10)}%;background:var(--line2)"></i>`:""}
+        ${r.m!=null?`<i style="position:absolute;top:-3px;bottom:-3px;left:calc(${r.m*10}% - 3px);width:6px;background:var(--fg)"></i>`:""}
+      </div>
+      <div class="mono" style="display:flex;justify-content:space-between;font-size:10px;color:var(--faint);margin-top:2px"><span>0</span><span>5</span><span>10</span></div></div>`).join("");
+}
+function chartScatter(s){
+  const V = s.rubric.verdicts, pts = s.cases.filter(c => c.verdict && c.verdict.score!=null && c.provisional!=null);
+  const w = W("ch-scatter"), h = 230, m = {l:28, r:10, t:10, b:28}, iw = w-m.l-m.r, ih = h-m.t-m.b;
+  if (!pts.length) { $("ch-scatter").innerHTML = `<div class="empty">Shows once a human gives a scored verdict<br><br><code>verdict shortlist 88</code></div>`; return; }
+  const X = (v) => m.l + v/100*iw, Y = (v) => m.t + ih - v/100*ih;
+  let g = "";
+  for (const v of [0,50,100]) g += `<line class="gl" x1="${X(v)}" x2="${X(v)}" y1="${m.t}" y2="${m.t+ih}"/><line class="gl" x1="${m.l}" x2="${w-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${X(v)}" y="${h-m.b+14}" text-anchor="middle">${v}</text><text x="${m.l-5}" y="${Y(v)+3.5}" text-anchor="end">${v}</text>`;
+  g += `<line x1="${X(0)}" y1="${Y(0)}" x2="${X(100)}" y2="${Y(100)}" stroke="var(--fg)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  g += `<text x="${X(4)}" y="${Y(92)}" style="font-weight:700">human higher ↑</text><text x="${X(96)}" y="${Y(6)}" text-anchor="end" style="font-weight:700">↓ human lower</text>`;
+  for (const c of pts) { const o = outcome(c, V), col = o==="top"?"var(--green)":(o==="out"?"var(--red)":"var(--fg)"); const d = c.verdict.score - c.provisional;
+    g += `<g class="hit" data-open="${c.number}" ${T(`<b>#${String(c.number).padStart(3,"0")} ${esc(c.repo)}</b><br>panel ${c.provisional.toFixed(1)} → human ${c.verdict.score}<br>${d>=0?"+":""}${d.toFixed(1)} pts · ${esc(c.verdict.decision)}`)}><circle cx="${X(c.provisional)}" cy="${Y(c.verdict.score)}" r="12" fill="transparent"/><rect x="${X(c.provisional)-5}" y="${Y(c.verdict.score)-5}" width="10" height="10" fill="${col}" stroke="var(--bg)" stroke-width="2"/></g>`; }
+  g += `<text x="${m.l+iw/2}" y="${h-2}" text-anchor="middle">panel score →</text>`;
+  $("ch-scatter").innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="Panel score against human score">${g}</svg>`;
+}
+function chartGantt(s){
+  const cs = [...s.cases].sort((a,b) => a.number - b.number), V = s.rubric.verdicts;
+  if (!cs.length) { $("ch-gantt").innerHTML = `<div class="empty">Nothing filed yet</div>`; return; }
+  const w = W("ch-gantt"), lw = w > 560 ? Math.min(190, w*.2) : 40, rh = 24, m = {t:22, b:26, r:46};
+  const t0 = Math.min(...cs.map(c => c.created_at)), t1 = nowS(), span = Math.max(60, t1 - t0);
+  const h = m.t + cs.length*rh + m.b, iw = w - lw - m.r;
+  const X = (t) => lw + (t - t0)/span*iw;
+  let g = "";
+  const steps = [60,300,600,900,1800,3600,7200,10800,21600,43200,86400]; const step = steps.find(x => span/x <= Math.max(3, iw/110)) || 86400;
+  for (let t = Math.ceil(t0/step)*step; t <= t1; t += step) g += `<line class="gl" x1="${X(t)}" x2="${X(t)}" y1="${m.t-6}" y2="${h-m.b}"/><text x="${X(t)}" y="${h-m.b+15}" text-anchor="middle">${hhmm(t)}</text>`;
+  cs.forEach((c, i) => {
+    const y = m.t + i*rh, mid = y + rh/2, ra = readyAt(c), va = c.verdict?.at, o = outcome(c, V);
+    g += `<g class="hit" data-open="${c.number}"><rect x="0" y="${y}" width="${w}" height="${rh}" fill="transparent"/>`;
+    g += `<text x="0" y="${mid+3.5}" style="fill:var(--fg);font-weight:700">#${String(c.number).padStart(3,"0")}</text>${w>560?`<text x="34" y="${mid+3.5}">${esc(c.repo.length>20?c.repo.slice(0,19)+"…":c.repo)}</text>`:""}`;
+    const jEnd = ra ?? (va ?? t1);
+    g += `<rect x="${X(c.created_at)}" y="${y+5}" width="${Math.max(2, X(jEnd)-X(c.created_at))}" height="${rh-10}" fill="url(#hatch)" stroke="var(--fg)" stroke-width="1.5" ${T(`<b>#${String(c.number).padStart(3,"0")} judging</b><br>filed ${hhmm(c.created_at)} · ${ra?`panel done in ${dur(ra-c.created_at)}`:"still in the room"}`)}/>`;
+    if (ra) { const wEnd = va ?? t1; g += `<rect x="${X(ra)}" y="${y+5}" width="${Math.max(2, X(wEnd)-X(ra))}" height="${rh-10}" fill="var(--bg)" stroke="${va?"var(--fg)":"var(--red)"}" stroke-width="2" ${T(`<b>${va?"Waited":"Waiting"} on a human</b><br>${dur(wEnd-ra)}${c.assignee?` · @${esc(c.assignee)}`:""}`)}/>`; }
+    if (va) { const col = o==="top"?"var(--green)":(o==="out"?"var(--red)":"var(--fg)"); g += `<rect x="${X(va)-2}" y="${y+2}" width="12" height="${rh-4}" fill="${col}" ${T(`<b>${esc(c.verdict.decision.toUpperCase())}</b> ${c.final!=null?Math.round(c.final):""} by ${esc(c.verdict.judge||"")} at ${hhmm(va)}`)}/><text x="${X(va)+14}" y="${mid+3.5}" style="fill:var(--fg);font-weight:700">${esc(c.verdict.decision)}</text>`; }
+    for (const [j, card] of Object.entries(c.scorecards||{})) if (card.at) g += `<rect x="${X(card.at)-3.5}" y="${y-1}" width="7" height="7" fill="var(--fg)" stroke="var(--bg)" stroke-width="1.5" ${T(`<b>${esc(short(j))}</b> filed a scorecard at ${hhmm(card.at)} (+${dur(card.at-c.created_at)})`)}/>`;
+    for (const a of (c.appeal_log||[])) if (a.at) g += `<rect x="${X(a.at)-5}" y="${mid-5}" width="10" height="10" fill="var(--red)" transform="rotate(45 ${X(a.at)} ${mid})" ${T(`<b>Appeal</b> by ${esc(a.by)}<br>${esc(a.text)}`)}/>`;
+    g += `</g>`;
+  });
+  g += `<line x1="${X(t1)}" x2="${X(t1)}" y1="${m.t-14}" y2="${h-m.b}" stroke="var(--red)" stroke-width="2"/><text x="${X(t1)}" y="${m.t-16}" text-anchor="end" style="fill:var(--red);font-weight:800">NOW</text>`;
+  $("ch-gantt").innerHTML = `<svg width="${w}" height="${h}" role="img" aria-label="Case timeline">${HATCH}${g}</svg>
+    <div class="legend"><span><i class="sw-h"></i>judges at work</span><span><i class="sw-o"></i>waiting on a human</span><span><i class="sw-g"></i>${esc(V[0])}</span><span><i class="sw-k"></i>${esc(V.slice(1,-1).join("/")||"maybe")}</span><span><i class="sw-r"></i>${esc(V[V.length-1])} / appeal</span><span><i class="sw-k" style="width:7px;height:7px"></i>scorecard</span></div>`;
+}
+
+// ── bench ─────────────────────────────────────────────────────────────────
+const ROLE = {
+  "jury-auditor": ["Deterministic", "Plain Python, no model. Clones the repo and checks Switch wiring, tests and lockfiles, the commit window, leaked secrets and copied code. Argue with it and it holds the line."],
+  "jury-inspector": ["Runs the code", "An agent on Switch that clones the repo, follows the README and reports what actually happened when it ran."],
+  "jury-critic": ["Weighs the idea", "An agent on Switch that reads the pitch, the README and the video and judges originality, impact and how Switch is used."],
+};
+function judgeStats(s, j){
+  const cs = s.cases, crit = s.rubric.criteria;
+  const mine = cs.filter(c => (c.scorecards||{})[j]);
+  const own = mine.map(c => ownScore(c.scorecards[j], crit)).filter(v => v!=null);
+  const resp = mine.map(c => c.scorecards[j].at - c.created_at).filter(v => v > 0);
+  const pending = cs.filter(c => (c.judges||[]).includes(j) && !(c.scorecards||{})[j] && !c.verdict).length;
+  const diffs = cs.filter(c => c.verdict && c.verdict.score!=null && (c.scorecards||{})[j]).map(c => ownScore(c.scorecards[j], crit) - c.verdict.score).filter(v => !isNaN(v));
+  return {n: mine.length, avg: mean(own), resp: median(resp), pending, lean: mean(diffs), leanN: diffs.length, spread: diffs.length ? Math.sqrt(mean(diffs.map(d => (d - mean(diffs))**2))) : null};
+}
+function renderBench(s){
+  const crit = s.rubric.criteria, b = s.bench || {}, judges = [b.auditor || "jury-auditor", ...(b.judges || [])];
+  const cards = judges.map(j => { const st = judgeStats(s, j), r = ROLE[j] || ["Agent", "A judge on Switch."]; const owns = crit.filter(k => k.judges.includes(j));
+    return `<div class="jcard"><span class="lbl mut">Judge · ${esc(j)}</span><div class="nm">${esc(short(j))}</div><span class="chip lbl kind ${j===b.auditor?"inv":""}">${esc(r[0])}</span><p>${esc(r[1])}</p>
+      <div class="owns">${owns.map(k => `<span>${esc(k.label)} ${k.weight}%</span>`).join("")}</div>
+      <div class="jstats"><div><span class="lbl mut">Scorecards</span><div class="v">${st.n}</div></div><div><span class="lbl mut">Avg given</span><div class="v">${st.avg==null?"–":st.avg.toFixed(0)}</div></div>
+      <div><span class="lbl mut">Median reply</span><div class="v">${st.resp==null?"–":dur(st.resp)}</div></div><div><span class="lbl mut">Owes</span><div class="v ${st.pending?"red":""}">${st.pending}</div></div></div></div>`; });
+  const humans = {}; for (const c of s.cases) if (c.verdict) (humans[c.verdict.judge || "?"] ||= []).push(c);
+  const pend = {}; for (const c of s.cases) if (stage(c)==="human" && c.assignee) pend[c.assignee] = (pend[c.assignee]||0) + 1;
+  const hn = [...new Set([...(b.humans||[]), ...Object.keys(humans), ...Object.keys(pend)])];
+  const ovs = Object.values(humans).flat().map(override).filter(v => v!=null && Math.abs(v) >= 5).length;
+  cards.push(`<div class="jcard" style="background:var(--fg);color:var(--bg)"><span class="lbl" style="opacity:.6">The one that counts</span><div class="nm">Human</div><span class="chip lbl kind" style="border-color:var(--bg);background:none;color:inherit">Gives every verdict</span><p style="color:inherit;opacity:.75">Reads the room, asks the agents anything, then says shortlist, maybe or pass, and can override the score. Clerk assigns cases round-robin and reminds anyone sitting on one.</p>
+    <div class="owns">${hn.map(h => `<span style="border-color:var(--bg)">@${esc(h)}${pend[h]?` · ${pend[h]} waiting`:""}</span>`).join("") || `<span style="border-color:var(--bg)">set JURY_JUDGE_USERS</span>`}</div>
+    <div class="jstats" style="border-color:var(--bg)"><div><span class="lbl" style="opacity:.6">Verdicts</span><div class="v">${Object.values(humans).flat().length}</div></div><div><span class="lbl" style="opacity:.6">Overrides 5+</span><div class="v">${ovs}</div></div>
+    <div><span class="lbl" style="opacity:.6">Waiting</span><div class="v" style="${sum(Object.values(pend))?"color:var(--red)":""}">${sum(Object.values(pend))}</div></div><div><span class="lbl" style="opacity:.6">Appeals</span><div class="v">${sum(s.cases.map(c => c.appeals||0))}</div></div></div></div>`);
+  $("jcards").innerHTML = cards.join("");
+
+  $("ch-matrix").innerHTML = `<table class="matrix"><thead><tr><th>Criterion</th>${judges.map(j => `<th>${esc(ini(j))}</th>`).join("")}<th>%</th></tr></thead><tbody>${crit.map(k => `<tr><td><b>${esc(k.label)}</b></td>${judges.map(j => `<td class="y">${k.judges.includes(j)?"■":`<span class="mut">·</span>`}</td>`).join("")}<td class="mono">${k.weight}</td></tr>`).join("")}</tbody></table>
+    <div class="legend">${judges.map(j => `<span>${esc(ini(j))} = ${esc(short(j))}</span>`).join("")}</div>`;
+
+  const cell = {}; for (const c of s.cases) for (const [j, card] of Object.entries(c.scorecards||{})) for (const [k, v] of Object.entries(card.scores||{})) ((cell[j] ||= {})[k] ||= []).push(v);
+  $("ch-heat").innerHTML = Object.keys(cell).length ? `<table class="heat"><thead><tr><th></th>${crit.map(k => `<th title="${esc(k.label)}">${esc(k.label.split(/\s+/)[0])}</th>`).join("")}</tr></thead><tbody>${judges.filter(j => cell[j]).map(j => `<tr><th>${esc(short(j))}</th>${crit.map(k => { const v = cell[j]?.[k.id]; if (!v) return `<td class="na">·</td>`; const m = mean(v); const pct = Math.round(12 + m/10*80);
+      return `<td style="background:color-mix(in srgb,var(--fg) ${pct}%,var(--bg));color:${pct>52?"var(--bg)":"var(--fg)"}" ${T(`<b>${esc(short(j))} · ${esc(k.label)}</b><br>average ${m.toFixed(1)}/10 over ${v.length} case(s)`)}>${m.toFixed(1)}</td>`; }).join("")}</tr>`).join("")}</tbody></table>
+    <div class="legend"><span><i style="background:color-mix(in srgb,var(--fg) 15%,var(--bg))"></i>low</span><span><i style="background:color-mix(in srgb,var(--fg) 90%,var(--bg))"></i>high</span><span><i class="sw-h" style="outline:0;background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line2) 3px 4px)"></i>not theirs to score</span></div>` : `<div class="empty">No scorecards yet</div>`;
+
+  const leans = judges.map(j => [j, judgeStats(s, j)]).filter(([, st]) => st.leanN);
+  $("ch-lean").innerHTML = leans.length ? `<div class="lean">${leans.map(([j, st]) => { const v = st.lean, ok = Math.abs(v) < 3, col = ok ? "var(--green)" : "var(--red)", wd = Math.min(50, Math.abs(v)/40*50);
+      return `<span>${esc(short(j))}</span><div class="tr" ${T(`<b>${esc(short(j))}</b> ${v>=0?"+":""}${v.toFixed(1)} pts vs the human, ±${st.spread.toFixed(1)} over ${st.leanN} case(s)`)}><i style="${v>=0?`left:50%`:`right:50%`};width:${wd}%;background:${col}"></i></div><span style="color:${ok?"var(--green-ink)":"var(--red-ink)"}">${v>=0?"+":""}${v.toFixed(1)} ${ok?"about right":(v>0?"generous":"harsh")}</span>`; }).join("")}<span></span><div class="ax"><span>−40 harsh</span><span>0</span><span>generous +40</span></div><span></span></div>
+      <p class="pd" style="margin-top:14px">Over ${Math.max(...leans.map(([,st])=>st.leanN))} case(s) where a human set a score. Ask Clerk for <code>calibration</code> in chat.</p>` : `<div class="empty">Shows once humans give scored verdicts</div>`;
+}
+
+// ── leaderboard ───────────────────────────────────────────────────────────
+const FILTERS = [["all","All"],["human","Needs a human"],["panel","Judging"],["decided","Decided"],["flagged","Flagged"]];
+function matches(c, s){
+  const f = UI.filter;
+  if (f === "flagged" && !(c.red_flags||[]).length) return false;
+  if (f === "filed" && stage(c) !== "filed") return false;
+  if (f === "panel" && !["panel","filed"].includes(stage(c))) return false;
+  if (["human","decided"].includes(f) && stage(c) !== f) return false;
+  if (UI.q) { const hay = [c.owner, c.repo, c.label, c.room_name, c.submitter, c.assignee, c.verdict?.decision, c.verdict?.judge, ...(c.red_flags||[]), ...Object.keys(c.scorecards||{})].join(" ").toLowerCase(); if (!UI.q.toLowerCase().split(/\s+/).every(t => hay.includes(t))) return false; }
+  return true;
+}
+function visible(s){
+  const list = s.cases.filter(c => matches(c, s));
+  const by = {rank:(a,b)=>a.rank-b.rank, score:(a,b)=>(b.final??-1)-(a.final??-1), new:(a,b)=>b.created_at-a.created_at, fast:(a,b)=>(a.first_pass_s??1e12)-(b.first_pass_s??1e12), flags:(a,b)=>(b.red_flags||[]).length-(a.red_flags||[]).length};
+  return list.sort(by[UI.sort] || by.rank);
+}
+function renderFilters(s){
+  const n = (f) => s.cases.filter(c => { const o = UI.filter; UI.filter = f; const r = matches(c, s); UI.filter = o; return r; }).length;
+  $("filters").innerHTML = FILTERS.map(([f, l]) => `<button class="${(UI.filter===f || (f==="panel" && UI.filter==="filed"))?"on":""}" data-filter="${f}">${l}<b>${n(f)}</b></button>`).join("");
+  $("clear").classList.toggle("hide", UI.filter==="all" && !UI.q && UI.sort==="rank");
+}
+function renderBoard(s){
+  renderFilters(s);
   const crit = s.rubric.criteria, V = s.rubric.verdicts, cs = s.cases;
-  $("event").textContent = s.rubric.name;
-  const decided = cs.filter(c=>c.verdict), top = decided.filter(c=>c.verdict.decision===V[0]).length;
-  const waiting = cs.filter(c=>!c.verdict && c.status==="scored");
-  const flagged = cs.filter(c=>(c.red_flags||[]).length);
-  const copies = cs.filter(c=>(c.red_flags||[]).some(f=>f.startsWith("Possible copy")));
-  const passes = cs.map(c=>c.first_pass_s).filter(v=>v!=null).sort((a,b)=>a-b);
-  const med = passes.length ? passes[Math.floor(passes.length/2)] : null;
-  const S = [[cs.length,"Cases filed",""],[decided.length,"Decided by a human",""],[top,V[0]==="shortlist"?"Shortlisted":`Verdict: ${V[0]}`,"green"],[waiting.length,"Waiting on a human",waiting.length?"red":""],[flagged.length,`Flagged${copies.length?`, ${copies.length} possible cop${copies.length>1?"ies":"y"}`:""}`,flagged.length?"red":""],[fmtT(med),"Median first pass",""]];
-  $("stats").innerHTML = S.map(([n,l,c])=>`<div class="stat ${c}"><div class="n">${n}</div><div class="l">${esc(l)}</div></div>`).join("");
-  $("rubric").innerHTML = crit.map(c=>`<div style="flex:${c.weight}" title="${esc(c.label)}, scored by ${esc(c.judges.join(", "))}"><b>${c.weight}%</b>${esc(c.label)}</div>`).join("");
-
-  // ticker
-  const ev = [];
-  for (const c of cs){
-    if (c.verdict) ev.push([c.verdict.decision===V[0]?"g":(c.verdict.decision===V[V.length-1]?"r":""), `${c.label} ${c.owner}/${c.repo}: ${c.verdict.decision.toUpperCase()}${c.final!=null?` ${Math.round(c.final)}`:""}`]);
-    else if (c.status==="scored") ev.push(["", `${c.label} ${c.owner}/${c.repo} is waiting on a human verdict`]);
-    for (const f of (c.red_flags||[]).slice(0,1)) ev.push(["r", `${c.label}: ${md(f)}`]);
-  }
-  if (!ev.length) ev.push(["", "Paste a GitHub link in #" + s.rooms.intake + " to open the first case"]);
-  const line = ev.map(([k,t])=>`<span class="${k}">■ ${esc(t)}</span>`).join("");
-  $("ticker").innerHTML = line + line;
-
-  // ledger
-  if (!cs.length){
-    $("cases").innerHTML = `<div class="void">The floor is empty.<small>Paste a GitHub link in #${esc(s.rooms.intake)} and Clerk opens the first case room.</small></div>`;
-  } else {
-    $("cases").innerHTML = cs.map(c=>{
-      const m = means(c), out = c.verdict && c.verdict.decision===V[V.length-1];
-      const meters = crit.map(k=>`<span class="k">${esc(k.label)}</span>${cells(m[k.id])}<span class="v">${m[k.id]==null?"–":m[k.id].toFixed(1)}</span>`).join("");
-      const flags = (c.red_flags||[]).slice(0,4).map(f=>`<li>${esc(md(f))}</li>`).join("");
-      const bench = (c.judges||[]).map(j=>`<span class="${c.scorecards&&c.scorecards[j]?"done":""}">${esc(j.replace("jury-",""))}</span>`).join("");
-      const notes = Object.entries(c.scorecards||{}).map(([j,card])=>{ const t = card.summary || Object.values(card.notes||{}).join("; "); return t?`<p><b>${esc(j.replace("jury-",""))}.</b> ${esc(t)}</p>`:""; }).join("");
-      const meta = [`filed by <b>${esc(c.submitter)}</b>`, c.assignee?`judge <b>@${esc(c.assignee)}</b>`:"", c.room_name?`room <b>#${esc(c.room_name)}</b>`:"", c.first_pass_s!=null?`first pass <b>${fmtT(c.first_pass_s)}</b>`:"", c.appeals?`<b style="color:var(--red)">appealed${c.appeals>1?" ×"+c.appeals:""}</b>`:""].filter(Boolean).join(", ");
-      const final = c.final==null ? `<div class="score pending" aria-label="No score yet">??<small style="color:var(--dim);-webkit-text-stroke:0">/100</small></div>` : `<div class="score">${Math.round(c.final)}<small>/100</small>${c.verdict&&c.verdict.score!=null&&c.provisional!=null&&Math.abs(c.verdict.score-c.provisional)>=0.5?`<span class="prov">Panel said ${Math.round(c.provisional)}</span>`:""}</div>`;
-      return `<article class="case${out?" out":""}">
-        <div class="rank">${c.rank}</div>
-        <div class="cbody">
-          <a class="repo" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.owner)}/${esc(c.repo)}</a>
-          <div class="meta">${esc(c.label)}, ${meta}</div>
-          <div class="meters">${meters}</div>
-          ${flags?`<ul class="flags">${flags}</ul>`:""}
-          <div class="bench" aria-label="Judges on this case">${bench}</div>
-          ${notes?`<details data-case="${c.number}" ${OPEN.has(String(c.number))?"open":""}><summary>Why these scores</summary>${notes}</details>`:""}
-        </div>
-        <div class="right">${final}${stamp(c,V)}${c.verdict&&c.verdict.note?`<div class="note">“${esc(c.verdict.note)}” ${esc(c.verdict.judge||"")}</div>`:""}</div>
-      </article>`;
-    }).join("");
-  }
-
-  // docket
-  const box = (title, hint, inner) => `<div class="box"><h2>${title}</h2>${hint?`<div class="hint">${hint}</div>`:""}${inner}</div>`;
-  const wait = waiting.length ? waiting.map(c=>`<div class="row"><span>${esc(c.label)} ${esc(c.repo)}</span><span>${c.assignee?"@"+esc(c.assignee):"unassigned"}</span></div>`).join("") : `<div class="empty">Nothing is waiting. Every finished panel has a verdict.</div>`;
-  const cp = copies.length ? copies.map(c=>`<div class="row r"><span>${esc(c.label)} ${esc(c.owner)}/${esc(c.repo)}</span><span>compare</span></div>`).join("") : `<div class="empty">No shared history or shared code between submissions.</div>`;
-  const diffs = {};
-  for (const c of cs){ const h = c.verdict && c.verdict.score; if (h==null) continue; for (const [j,card] of Object.entries(c.scorecards||{})){ const o = ownScore(card, crit); if (o!=null) (diffs[j] ||= []).push(o-h); } }
-  const cal = Object.keys(diffs).length ? `<div class="cal">${Object.entries(diffs).map(([j,d])=>{ const mu=d.reduce((a,b)=>a+b,0)/d.length; const w=Math.min(50,Math.abs(mu)); const ok=Math.abs(mu)<3; const col=ok?"var(--green)":"var(--red)"; const pos = mu>=0?`left:50%;width:${w}%`:`right:50%;width:${w}%`; return `<span>${esc(j.replace("jury-",""))}</span><div class="lean"><i style="${pos};background:${col}"></i></div><span style="color:${col}">${mu>=0?"+":""}${mu.toFixed(1)}</span>`; }).join("")}</div>` : `<div class="empty">Shows once humans give scored verdicts: <code>verdict shortlist 88</code></div>`;
-  $("docket").innerHTML =
-    box("Waiting on you", "Finished panels with no human verdict yet.", wait) +
-    box("Copy alerts", "Shared git history or shared code with another case.", cp) +
-    box("Judge lean", "Each AI judge's own score minus the human's final score. Right of the line is too generous.", cal) +
-    box("Commands", "", ["verdict shortlist 88 note","explain 7","my queue","calibration","close intake"].map(t=>`<div class="row"><span>@jury-clerk ${esc(t)}</span><span></span></div>`).join(""));
-
-  last = s.generated_at*1000;
-  $("updated").textContent = "updated " + new Date(last).toLocaleTimeString();
-  $("foot").textContent = `${cs.length} case${cs.length===1?"":"s"} on the floor`;
+  if (!cs.length) { $("boardwrap").innerHTML = `<div class="void"><div class="big">No cases yet.</div><ol><li>Paste a GitHub link in <b>#${esc(s.rooms.intake)}</b>, or run <code>jury submit owner/repo</code></li><li>Clerk opens <b>#case-001-…</b> and the bench starts judging</li><li>A human gives the verdict in that room: <code>@jury-clerk verdict shortlist 88</code></li></ol></div>`; return; }
+  const list = visible(s);
+  if (!list.length) { $("boardwrap").innerHTML = `<div class="noresults">Nothing matches. <button class="clear" data-clear="1">Clear filters</button></div>`; return; }
+  UI.sel = Math.min(UI.sel, list.length - 1);
+  $("boardwrap").innerHTML = `<table class="board"><thead><tr class="lbl mut">
+    <th style="text-align:center">#</th><th>Submission</th><th>Score · rating</th><th class="c-break">Rubric</th><th class="c-bench">Bench</th><th class="c-flags">Flags</th><th class="c-status">Status</th><th class="c-go"></th></tr></thead><tbody>
+    ${list.map((c, i) => { const m = means(c), out = outcome(c, V) === "out", d = override(c), o = outcome(c, V), done = Object.keys(c.scorecards||{});
+      const splitJ = new Set((c.disagreements||[]).flatMap(x => [x.a, x.b]));
+      const meta = [c.label, c.assignee ? `@${c.assignee}` : "", c.first_pass_s!=null ? `panel ${dur(c.first_pass_s)}` : `filed ${ago(c.created_at)}`, c.appeals ? `appealed` : ""].filter(Boolean).join(" · ");
+      return `<tr data-open="${c.number}" class="${i===UI.sel?"sel":""}">
+      <td><div class="rk ${out?"lost":""}">${c.rank}</div></td>
+      <td class="sub"><div class="nm">${nm(c)}${c.sample?"":`<span class="tag" ${T("Real data: Jury's bench judging this very repo")}>real</span>`}${isCopy(c)?`<span class="tag red">copy?</span>`:""}</div><div class="mt">${esc(meta)}</div><div class="mstamp">${stampHTML(c, V)}</div></td>
+      <td class="scorecell"><div class="sc ${c.final==null?"na":""}">${c.final==null?"––":Math.round(c.final)}<small>/100</small>${d!=null&&Math.abs(d)>=0.5?`<span class="delta ${d>0?"green":"red"}" ${T(`The human moved the panel's ${c.provisional.toFixed(1)} to ${c.verdict.score}`)}>${d>0?"▲":"▼"}${Math.abs(d).toFixed(0)}</span>`:""}</div>${stars(c.final, o==="top"?"g":(o==="out"?"r":""))}${!c.complete&&c.final!=null?`<div class="mono mut" style="font-size:10.5px;margin-top:2px">provisional</div>`:""}</td>
+      <td class="c-break"><div class="mini">${crit.map(k => { const v = m[k.id]; return v==null ? `<div class="none" ${T(`<b>${esc(k.label)}</b><br>no scorecard yet`)}></div>` : `<div class="${v<4?"lo":""}" ${T(`<b>${esc(k.label)}</b> ${v.toFixed(1)}/10<br>${Object.entries(c.scorecards).filter(([,x])=>(x.scores||{})[k.id]!=null).map(([j,x])=>`${esc(short(j))} ${x.scores[k.id]}`).join(" · ")}`)}><i style="height:${v*10}%"></i></div>`; }).join("")}</div><div class="minil">${crit.map(k => `<span>${esc(k.label.slice(0,2).toUpperCase())}</span>`).join("")}</div></td>
+      <td class="c-bench"><div class="bench">${(c.judges||[]).map(j => `<span class="${splitJ.has(j)?"fight":(done.includes(j)?"done":"")}" ${T(`<b>${esc(j)}</b>: ${splitJ.has(j)?"filed, and split with another judge":(done.includes(j)?"scorecard filed":"still working")}`)}>${esc(ini(j))}</span>`).join("")}</div></td>
+      <td class="c-flags"><span class="fl ${(c.red_flags||[]).length?"r":"mut"}" ${(c.red_flags||[]).length?T((c.red_flags||[]).map(f=>"• "+esc(md(f))).join("<br>")):""}>${(c.red_flags||[]).length ? "⚑ "+(c.red_flags||[]).length : "–"}</span></td>
+      <td class="c-status">${stampHTML(c, V)}</td><td class="c-go"><span class="go">→</span></td></tr>`; }).join("")}
+    </tbody></table>`;
 }
-function clock(){ $("clock").textContent = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); $("live").classList.toggle("stale", last && Date.now()-last > 15000); }
-async function tick(){ try { const r = await fetch("/api/state",{cache:"no-store"}); render(await r.json()); } catch(e){ $("updated").textContent = "can't reach Jury. Is jury up running?"; } clock(); }
-tick(); setInterval(tick, 3000); setInterval(clock, 1000);
+
+// ── activity ──────────────────────────────────────────────────────────────
+function events(s){
+  const ev = [], crit = s.rubric.criteria, lab = (id) => (crit.find(k => k.id === id)||{label:id}).label;
+  for (const c of s.cases) {
+    const L = `#${String(c.number).padStart(3,"0")}`;
+    ev.push({t:c.created_at, k:"case", ic:"+", cls:"o", n:c.number, tx:`${L} filed: <b>${esc(c.owner)}/${esc(c.repo)}</b>`, sub:`by ${esc(c.submitter)} · Clerk opened #${esc(c.room_name||"")}${c.assignee?` · assigned to @${esc(c.assignee)}`:""}`});
+    for (const [j, card] of Object.entries(c.scorecards||{})) if (card.at) ev.push({t:card.at, k:"score", ic:ini(j), cls:"", n:c.number, tx:`<b>${esc(short(j))}</b> scored ${L}: ${Object.entries(card.scores||{}).map(([k,v]) => `${esc(lab(k))} ${v}`).join(", ")}`, sub:esc(md(card.summary||"").slice(0,140))});
+    for (const d of (c.disagreements||[])) { const t = Math.max(c.scorecards[d.a]?.at||0, c.scorecards[d.b]?.at||0); ev.push({t, k:"flag", ic:"⚔", cls:"r", n:c.number, tx:`Split on ${L} ${esc(lab(d.criterion))}: ${esc(short(d.a))} ${d.sa} vs ${esc(short(d.b))} ${d.sb}`, sub:"Clerk asked them to compare evidence in the room"}); }
+    if (readyAt(c)) ev.push({t:readyAt(c), k:"verdict", ic:"✓", cls:"o", n:c.number, tx:`${L} panel complete at <b>${c.provisional!=null?c.provisional.toFixed(1):"–"}</b>`, sub:`Clerk pinged ${c.assignee?"@"+esc(c.assignee):"the human judges"} for a verdict`});
+    for (const a of (c.appeal_log||[])) ev.push({t:a.at, k:"verdict", ic:"↺", cls:"r", n:c.number, tx:`Appeal on ${L} by <b>${esc(a.by)}</b>${a.previous?`: ${esc(a.previous.toUpperCase())} set aside`:""}`, sub:esc(a.text)});
+    if (c.verdict?.at) { const o = outcome(c, s.rubric.verdicts); ev.push({t:c.verdict.at, k:"verdict", ic:"⚖", cls:o==="top"?"g":(o==="out"?"r":""), n:c.number, tx:`<b>${esc(c.verdict.decision.toUpperCase())}</b> for ${L} ${esc(c.repo)}${c.final!=null?`, ${Math.round(c.final)}/100`:""}`, sub:`by ${esc(c.verdict.judge||"")}${c.verdict.note?` · “${esc(c.verdict.note)}”`:""}`}); }
+    if ((c.red_flags||[]).length && (c.scorecards||{})[s.bench?.auditor||"jury-auditor"]) ev.push({t:(c.scorecards[s.bench?.auditor||"jury-auditor"].at||c.created_at)+0.5, k:"flag", ic:"!", cls:"r", n:c.number, tx:`${(c.red_flags||[]).length} red flag${c.red_flags.length===1?"":"s"} on ${L}`, sub:esc(md(c.red_flags[0]).slice(0,140))});
+  }
+  return ev.filter(e => e.t).sort((a,b) => b.t - a.t);
+}
+const FEEDF = [["all","All"],["score","Scorecards"],["verdict","Verdicts"],["flag","Flags"],["case","Filed"]];
+function renderFeed(s){
+  const all = events(s), list = all.filter(e => UI.feedF === "all" || e.k === UI.feedF);
+  $("feedf").innerHTML = FEEDF.map(([f,l]) => `<button class="${UI.feedF===f?"on":""}" data-feed="${f}">${l}<b>${f==="all"?all.length:all.filter(e=>e.k===f).length}</b></button>`).join("");
+  $("feedcount").textContent = `${list.length} event${list.length===1?"":"s"}`;
+  $("feed").innerHTML = list.length ? list.slice(0, UI.feedN).map(e => `<li data-open="${e.n}"><time title="${new Date(e.t*1000).toLocaleString()}">${hhmm(e.t)}<br>${dur(nowS()-e.t)}</time><span class="ic ${e.cls}">${esc(e.ic)}</span><div class="tx">${e.tx}${e.sub?`<small>${e.sub}</small>`:""}</div></li>`).join("") : `<li style="cursor:default"><span></span><span></span><div class="tx mut">Nothing yet.</div></li>`;
+  $("more").classList.toggle("hide", list.length <= UI.feedN);
+}
+function renderCmds(s){
+  const c = "@" + (s.bench?.clerk || "jury-clerk"), first = s.cases.find(x => stage(x)==="human") || s.cases[0], N = first ? first.number : 1, V = s.rubric.verdicts, who = (s.bench?.humans||[])[0] || "maya";
+  const G = [
+    [`In #${s.rooms.intake}`, [["https://github.com/owner/repo", "Paste any GitHub link. Clerk opens a case room for it."], ["appeal the Critic missed the video", "Reply to Clerk's feedback in the thread to appeal a verdict."]]],
+    ["In a case room", [[`${c} verdict ${V[0]} 88 strong use of rooms`, `Give the verdict, optionally a score and a note. Choices: ${V.join(", ")}.`], [`${c} explain`, "How this case's score was computed, judge by judge."], [`${c} summon`, "Re-ping judges who haven't filed a scorecard."], [`${c} rescan`, "Re-read the room for scorecards Clerk might have missed."], [`${c} reaudit`, "Run the Auditor again after the team pushes a fix."], [`${c} feedback`, "Preview what the participant will be sent."], ["@jury-auditor evidence", "The Auditor's full fact sheet."]]],
+    [`On #${s.rooms.floor}`, [[`${c} leaderboard`, "The ranking, in chat."], [`${c} stats`, "First-pass times, flags, overrides, appeals."], [`${c} my queue`, "Cases assigned to you and their state."], [`${c} assign ${N} to @${who}`, "Hand a case to a specific human judge."], [`${c} calibration`, "How generous or harsh each AI judge is vs the humans."], [`${c} case ${N}`, "One case's scorecards at a glance."], [`${c} close intake`, "Stop taking new links (open intake reverses it)."], [`${c} help`, "Everything above, in chat."]]],
+    ["From a terminal", [["jury submit owner/repo", "File links from a script."], ["jury import submissions.csv", "File every repo link in a CSV."], ["jury export --md results.md", "Write the results post, ranked, with reasons."], ["jury audit owner/repo", "Run the Auditor locally, no Switch needed."], ["jury doctor", "Check the server, token, bridge and judges."]]],
+  ];
+  $("cmds").innerHTML = G.map(([h, rows]) => `<div class="cmdgrp"><span class="lbl mut">${esc(h)}</span>${rows.map(([cmd, d]) => `<button class="cmd" data-copy="${esc(cmd)}"><span><code>${esc(cmd)}</code><small>${esc(d)}</small></span><span class="cp">COPY</span></button>`).join("")}</div>`).join("");
+}
+function renderPrims(s){
+  const P = [
+    ["create_room_from_yaml", "A private room per case, with the bench invited and the rubric pinned as a document."],
+    ["link_rooms", "Each case room is linked to the floor, so the floor sees verdicts land."],
+    ["room documents", "The rubric, the Auditor's fact sheet and the live leaderboard are Switch documents everyone can open."],
+    ["send_targeted_message", "Clerk @-mentions exactly the judge it needs: a nudge, a split, a reminder."],
+    ["templates", "One click in Switch Console adds the Inspector and Critic: the Jury bench template."],
+    ["list_agents · read_context", "Clerk discovers who's on the bench and catches up on anything it missed."],
+    ["event stream + heartbeat", "Every agent listens on a resumable stream, so a restart loses nothing."],
+    ["addressing", "Clerk and the Auditor accept messages from anyone, so any agent can be a judge."],
+  ];
+  $("prims").innerHTML = P.map(([k, d]) => `<div class="prim"><code>${esc(k)}</code><p>${esc(d)}</p></div>`).join("");
+}
+function renderTicker(s){
+  const V = s.rubric.verdicts, ev = [];
+  for (const e of events(s).slice(0, 14)) ev.push([e.cls==="g"?"g":(e.cls==="r"?"r":""), e.tx.replace(/<[^>]+>/g, "")]);
+  if (!ev.length) ev.push(["", `Paste a GitHub link in #${s.rooms.intake} to open the first case`]);
+  const line = ev.map(([k, t]) => `<span class="${k}">■ ${esc(t)}</span>`).join("");
+  $("ticker").innerHTML = line + line;
+}
+
+// ── drawer ────────────────────────────────────────────────────────────────
+function radar(s, c){
+  const crit = s.rubric.criteria, n = crit.length, R = 104, cx = 150, cy = 136;
+  const ang = (i) => -Math.PI/2 + i*2*Math.PI/n;
+  const pt = (i, v) => [cx + Math.cos(ang(i))*R*v/10, cy + Math.sin(ang(i))*R*v/10];
+  let g = "";
+  for (const r of [2.5,5,7.5,10]) g += `<polygon points="${crit.map((_, i) => pt(i, r).join(",")).join(" ")}" fill="none" stroke="var(--line2)" stroke-width="1"/>`;
+  crit.forEach((k, i) => { const [x, y] = pt(i, 10); const [lx, ly] = pt(i, 12.6); g += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line2)"/><text x="${lx}" y="${ly+3}" text-anchor="${Math.abs(lx-cx)<8?"middle":(lx>cx?"start":"end")}" style="fill:var(--fg);font-weight:700">${esc(k.label.split(/\s+/)[0])}</text>`; });
+  let other = null, oname = "";
+  if (UI.overlay === "floor") { const fl = {}; for (const k of crit) fl[k.id] = mean(s.cases.map(x => means(x)[k.id]).filter(v => v!=null)); other = fl; oname = "floor average"; }
+  else { const oc = s.cases.find(x => String(x.number) === UI.overlay); if (oc) { other = means(oc); oname = `#${String(oc.number).padStart(3,"0")} ${oc.repo}`; } }
+  if (other) g += `<polygon points="${crit.map((k, i) => pt(i, other[k.id] ?? 0).join(",")).join(" ")}" fill="none" stroke="var(--mut)" stroke-width="2" stroke-dasharray="5 4"/>`;
+  const m = means(c);
+  g += `<polygon points="${crit.map((k, i) => pt(i, m[k.id] ?? 0).join(",")).join(" ")}" fill="color-mix(in srgb,var(--fg) 14%,transparent)" stroke="var(--fg)" stroke-width="2.5"/>`;
+  crit.forEach((k, i) => { if (m[k.id]==null) return; const [x, y] = pt(i, m[k.id]); g += `<rect x="${x-4.5}" y="${y-4.5}" width="9" height="9" fill="var(--fg)" stroke="var(--bg)" stroke-width="2" ${T(`<b>${esc(k.label)}</b>: this case ${m[k.id].toFixed(1)}${other&&other[k.id]!=null?` · ${esc(oname)} ${other[k.id].toFixed(1)}`:""}`)}/>`; });
+  const opts = [`<option value="floor" ${UI.overlay==="floor"?"selected":""}>vs floor average</option>`, ...s.cases.filter(x => x.number !== c.number && Object.keys(x.scorecards||{}).length).map(x => `<option value="${x.number}" ${UI.overlay===String(x.number)?"selected":""}>vs #${String(x.number).padStart(3,"0")} ${esc(x.repo)}</option>`)];
+  return `<svg width="100%" viewBox="-78 -4 456 284" style="max-width:360px;display:block" role="img" aria-label="Criteria radar">${g}</svg><div class="rlegend"><span><i></i>this case</span><span><i class="f"></i><select class="osel" id="overlay" aria-label="Compare with">${opts.join("")}</select></span></div>`;
+}
+function receipt(s, c){
+  const crit = s.rubric.criteria, m = means(c); let covered = 0, raw = 0;
+  const rows = crit.map(k => { const parts = Object.entries(c.scorecards||{}).filter(([, x]) => (x.scores||{})[k.id]!=null).map(([j, x]) => `${ini(j)} ${x.scores[k.id]}`);
+    if (m[k.id]==null) return `<div class="row"><span>${esc(k.label)} <span class="mut">${k.weight}%</span></span><span class="mut">pending</span></div>`;
+    const pts = k.weight*m[k.id]/10; covered += k.weight; raw += pts;
+    return `<div class="row"><span>${esc(k.label)} <span class="mut">${k.weight}%</span></span><b>${pts.toFixed(1)}</b></div><div class="sub2">mean(${parts.join(", ")}) = ${m[k.id].toFixed(2)} × ${k.weight/10}</div>`; }).join("");
+  const prov = c.provisional;
+  let tail = covered && covered < 100 ? `<div class="row"><span>covered ${covered}% → scaled ×${(100/covered).toFixed(2)}</span><b>${prov!=null?prov.toFixed(1):"–"}</b></div>` : `<div class="row"><span>panel total</span><b>${prov!=null?prov.toFixed(1):"–"}</b></div>`;
+  if (c.verdict && c.verdict.score!=null && prov!=null && Math.abs(c.verdict.score - prov) >= 0.05) tail += `<div class="row"><span>human override (${esc(c.verdict.judge||"")})</span><b>${(c.verdict.score-prov)>=0?"+":""}${(c.verdict.score-prov).toFixed(1)}</b></div>`;
+  return `<div class="receipt"><div class="row lbl"><span>Score receipt</span><span>${esc(c.label)}</span></div><hr>${rows}<hr>${tail}<hr><div class="row tot"><span>TOTAL</span><span>${c.final!=null?c.final.toFixed(1):"––"} /100</span></div>${!c.complete&&prov!=null?`<div class="sub2" style="margin-top:4px">provisional: not every criterion is scored yet</div>`:""}</div>`;
+}
+function renderDrawer(){
+  const s = UI.data, c = s && s.cases.find(x => x.number === UI.open);
+  if (!c) return;
+  const crit = s.rubric.criteria, V = s.rubric.verdicts, m = means(c), o = outcome(c, V);
+  const splits = new Set((c.disagreements||[]).flatMap(d => [`${d.a}|${d.criterion}`, `${d.b}|${d.criterion}`]));
+  const judges = [...new Set([...(c.judges||[]), ...Object.keys(c.scorecards||{})])];
+  $("dlab").innerHTML = `<span>${esc(c.label)}</span><span class="mut">· rank ${c.rank} of ${s.cases.length}</span>`;
+  const pct = c.final!=null ? Math.round(s.cases.filter(x => x.final!=null && x.final < c.final).length / Math.max(1, s.cases.filter(x => x.final!=null).length - 1) * 100) : null;
+  const tl = [[c.created_at, "k", `Filed by <b>${esc(c.submitter)}</b>; Clerk opened #${esc(c.room_name||"")}${c.assignee?` and assigned @${esc(c.assignee)}`:""}`]];
+  for (const [j, card] of Object.entries(c.scorecards||{})) if (card.at) tl.push([card.at, "", `<b>${esc(short(j))}</b> filed: ${Object.entries(card.scores||{}).map(([k,v]) => `${esc((crit.find(x=>x.id===k)||{label:k}).label)} ${v}`).join(", ")}`]);
+  for (const d of (c.disagreements||[])) tl.push([Math.max(c.scorecards[d.a]?.at||0, c.scorecards[d.b]?.at||0)+0.1, "r", `Split on ${esc((crit.find(x=>x.id===d.criterion)||{}).label||d.criterion)}: ${esc(short(d.a))} ${d.sa} vs ${esc(short(d.b))} ${d.sb}. Clerk asked them to settle it`]);
+  if (readyAt(c)) tl.push([readyAt(c), "k", `Panel complete at <b>${c.provisional?.toFixed(1)}</b>. Clerk asked for a verdict`]);
+  for (const a of (c.appeal_log||[])) tl.push([a.at, "r", `Appeal by <b>${esc(a.by)}</b>: “${esc(a.text)}”${a.previous?` ${esc(a.previous.toUpperCase())} set aside`:""}`]);
+  if (c.verdict?.at) tl.push([c.verdict.at, o==="top"?"g":(o==="out"?"r":"k"), `<b>${esc(c.verdict.decision.toUpperCase())}</b> by ${esc(c.verdict.judge||"")}${c.verdict.note?`: “${esc(c.verdict.note)}”`:""}`]);
+  tl.sort((a, b) => a[0] - b[0]);
+  const d = override(c);
+  $("dyn").innerHTML = `
+    <div class="dsec"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div class="dtitle">${nm(c)}</div>${stampHTML(c, V)}</div>
+      <div class="dmeta lbl">${c.url?`<a class="chip inv" href="${esc(c.url)}" target="_blank" rel="noopener">Open repo ↗</a>`:`<span class="chip">sample team</span>`}<button class="chip" data-copy="#${esc(c.room_name||"")}" style="cursor:pointer" ${T("Copy the room name")}>#${esc(c.room_name||"–")}</button>${c.assignee?`<span class="chip">@${esc(c.assignee)}</span>`:""}<span class="chip">filed ${ago(c.created_at)}</span>${c.first_pass_s!=null?`<span class="chip">panel in ${dur(c.first_pass_s)}</span>`:""}${(c.red_flags||[]).length?`<span class="chip r">⚑ ${(c.red_flags||[]).length} flag${c.red_flags.length===1?"":"s"}</span>`:""}</div></div>
+    <div class="dsec"><div class="dscore"><div class="big ${c.final==null?"mut":""}">${c.final==null?"––":Math.round(c.final)}<small>/100</small></div>
+      <div>${stars(c.final, o==="top"?"g":(o==="out"?"r":""))}<div class="mono" style="font-size:12px;margin:8px 0 12px">${c.final==null?"No scorecards yet":(d!=null&&Math.abs(d)>=0.5?`Panel said ${c.provisional.toFixed(1)}, the human set ${c.verdict.score} (${d>0?"+":""}${d.toFixed(1)})`:(c.complete?"Every criterion covered":"Provisional: some criteria still unscored"))}</div>
+      <div class="facts"><div><span class="lbl mut">Rank</span><b>${c.rank}<span class="mono mut" style="font-size:12px">/${s.cases.length}</span></b></div><div><span class="lbl mut">Beats</span><b>${pct==null?"–":pct+"%"}</b></div><div><span class="lbl mut">Splits</span><b class="${(c.disagreements||[]).length?"red":""}">${(c.disagreements||[]).length}</b></div></div></div></div></div>
+    <div class="dsec"><span class="lbl mut">How the score was built</span><div class="two"><div>${radar(s, c)}</div>${receipt(s, c)}</div></div>
+    <div class="dsec"><span class="lbl mut">Scorecards · red outline = judges more than ${s.settings?.disagreement_gap ?? 4} apart</span>
+      <table class="cards"><thead><tr><th>Judge</th>${crit.map(k => `<th>${esc(k.label)}</th>`).join("")}<th>Own</th></tr></thead><tbody>
+      ${judges.map(j => { const card = (c.scorecards||{})[j]; if (!card) return `<tr class="pend"><td><b>${esc(short(j))}</b></td><td colspan="${crit.length+1}">still working${(c.nudged||[]).includes(j)?" · nudged once":""}</td></tr>`;
+        const own = ownScore(card, crit); return `<tr><td><b>${esc(short(j))}</b><div class="mono mut" style="font-size:10.5px">${card.at?`+${dur(card.at-c.created_at)}`:""}</div></td>${crit.map(k => { const v = (card.scores||{})[k.id]; return v==null ? `<td class="no">·</td>` : `<td class="s ${splits.has(`${j}|${k.id}`)?"x":""}" ${card.notes&&card.notes[k.id]?T(esc(card.notes[k.id])):""}>${v}</td>`; }).join("")}<td class="mono">${own==null?"–":own.toFixed(0)}</td></tr>`; }).join("")}
+      <tr><td class="lbl">Mean</td>${crit.map(k => `<td class="s">${m[k.id]==null?"–":m[k.id].toFixed(1)}</td>`).join("")}<td class="mono"><b>${c.provisional==null?"–":c.provisional.toFixed(1)}</b></td></tr></tbody></table></div>
+    ${Object.entries(c.scorecards||{}).some(([, x]) => x.summary || Object.keys(x.notes||{}).length) ? `<div class="dsec"><span class="lbl mut">What the judges said</span>${Object.entries(c.scorecards).map(([j, x]) => (x.summary || Object.keys(x.notes||{}).length) ? `<div class="note"><b>${esc(short(j))}</b>${x.summary?`<p>${esc(md(x.summary))}</p>`:""}${Object.keys(x.notes||{}).length?`<ul>${Object.entries(x.notes).map(([k, v]) => `<li><b style="text-transform:none;letter-spacing:0">${esc((crit.find(y=>y.id===k)||{label:k}).label)}:</b> ${esc(md(v))}</li>`).join("")}</ul>`:""}</div>` : "").join("")}${c.verdict?.note?`<div class="note" style="border-color:var(--red)"><b>Human · ${esc(c.verdict.judge||"")}</b><p>“${esc(c.verdict.note)}”</p></div>`:""}</div>` : ""}
+    ${(c.red_flags||[]).length ? `<div class="dsec"><span class="lbl mut">Red flags · ${c.red_flags.length}</span><ul class="flags">${c.red_flags.map(f => `<li><span>${esc(md(f))}${/^Possible copy/i.test(f)&&copyOf(c)?` <button class="clear" data-open="${copyOf(c)}">open #${String(copyOf(c)).padStart(3,"0")}</button>`:""}</span></li>`).join("")}</ul></div>` : ""}
+    <div class="dsec"><span class="lbl mut">Case timeline</span><ul class="tl">${tl.map(([t, k, tx]) => `<li class="${k}"><time>${hhmm(t)} · +${dur(t - c.created_at)}</time>${tx}</li>`).join("")}</ul></div>`;
+  $("overlay")?.addEventListener("change", (e) => { UI.overlay = e.target.value; renderDrawer(); });
+}
+function setupBuilder(c){
+  const s = UI.data, V = s.rubric.verdicts;
+  const sug = (c.provisional ?? 0) >= s.rubric.shortlist_at ? V[0] : V[Math.min(1, V.length-1)];
+  UI.b = {decision: c.verdict?.decision || sug, score: Math.round(c.verdict?.score ?? c.provisional ?? 50), keep: c.verdict ? c.verdict.score==null : false, note: ""};
+  $("vseg").innerHTML = V.map((v, i) => `<button data-v="${esc(v)}" class="${i===0?"vt":(i===V.length-1?"vo":"")}">${esc(v)}</button>`).join("");
+  $("vscore").value = UI.b.score; $("keep").checked = UI.b.keep; $("vnote").value = "";
+  const N = c.number, clerk = "@" + (s.bench?.clerk || "jury-clerk");
+  $("quick").innerHTML = [["explain", "explain"], ["summon", "summon"], ["rescan", "rescan"], ["reaudit", "reaudit"], ["feedback", "feedback"], [`case ${N}`, `case ${N}`], [`assign ${N} to @…`, `assign ${N} to @${(s.bench?.humans||[])[0]||"name"}`]].map(([l, cmd]) => `<button data-copy="${esc(clerk+" "+cmd)}">${esc(l)}</button>`).join("");
+  syncBuilder();
+}
+function syncBuilder(){
+  const s = UI.data, b = UI.b, clerk = "@" + (s.bench?.clerk || "jury-clerk");
+  for (const el of $("vseg").children) el.classList.toggle("on", el.dataset.v === b.decision);
+  $("vscore").disabled = b.keep; $("vsv").textContent = b.keep ? "––" : b.score; $("vsv").style.opacity = b.keep ? .4 : 1;
+  $("vout").textContent = `${clerk} verdict ${b.decision}${b.keep ? "" : " " + b.score}${b.note.trim() ? " " + b.note.trim() : ""}`;
+}
+function openCase(n){
+  const s = UI.data; if (!s || !s.cases.some(c => c.number === n)) return;
+  const fresh = UI.open !== n; UI.open = n; UI.overlay = "floor";
+  renderDrawer(); if (fresh) { setupBuilder(s.cases.find(c => c.number === n)); $("dbody").scrollTop = 0; }
+  $("drawer").classList.add("on"); $("scrim").classList.add("on"); $("drawer").setAttribute("aria-hidden", "false");
+  try { history.replaceState(null, "", "#case-" + n); } catch(e) {}
+}
+function closeCase(){ UI.open = null; $("drawer").classList.remove("on"); $("scrim").classList.remove("on"); $("drawer").setAttribute("aria-hidden", "true"); try { history.replaceState(null, "", location.pathname + location.search); } catch(e) {} }
+function step(dir){ const s = UI.data; if (!s || UI.open == null) return; const list = visible(s).length ? visible(s) : s.cases; let i = list.findIndex(c => c.number === UI.open); if (i < 0) i = 0; const nx = list[(i + dir + list.length) % list.length]; openCase(nx.number); }
+
+// ── tour ──────────────────────────────────────────────────────────────────
+const TOUR = [
+  ["overview", ".hero", "What this is", "Jury runs hackathon judging inside team chat on Switch. Every link pasted in the intake room becomes a case with its own room, judges and a paper trail. This page is the live view of that floor."],
+  ["pipe", "#pipe", "Where every case is", "Left to right: filed, audited by plain code, judged by two AI agents, then handed to a human for the verdict. The red number is how many are waiting on a person. Click a stage to filter the leaderboard."],
+  ["alerts", "#alerts", "What needs attention", "Copies, judges who disagree, cases nobody has decided, appeals. Click any of them to open the case."],
+  ["insights", "#insights", "The floor in charts", "Score spread against the shortlist bar, criteria across the floor, how humans moved the AI's scores, and a timeline of every case. Hover for numbers."],
+  ["board", "#board", "The leaderboard", "Ranked by verdict, then score. Search, filter, sort, and press j or k to move. Click a row to open its case file: score receipt, radar, scorecards, timeline, and a ready-to-paste verdict."],
+  ["judges", "#judges", "The bench", "Who scores which criterion, how generous each judge is, and whether the AI agrees with the humans. A human always has the last word."],
+  ["activity", "#activity", "Drive it from chat", "Every event, newest first, and every command Clerk understands. Click one to copy it into Switch."],
+];
+let tourI = -1;
+function tour(i){
+  document.querySelectorAll(".tour-focus").forEach(e => e.classList.remove("tour-focus"));
+  if (i < 0 || i >= TOUR.length) { tourI = -1; $("tourcard").classList.add("hide"); tryLS("jury.toured", "1"); return; }
+  tourI = i; const [, sel, h, p] = TOUR[i], el = document.querySelector(sel);
+  if (el) { el.classList.add("tour-focus"); el.scrollIntoView({block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}); }
+  $("tourcard").innerHTML = `<div class="in"><span class="lbl" style="opacity:.6">Tour · ${i+1} of ${TOUR.length}</span><h3>${esc(h)}</h3><p>${esc(p)}</p><div class="dots">${TOUR.map((_, k) => `<i class="${k===i?"on":""}"></i>`).join("")}</div></div><div class="ft"><button data-tour="-99">Skip</button><button data-tour="${i-1}" ${i===0?"disabled style='opacity:.35'":""}>Back</button><button data-tour="${i+1}">${i===TOUR.length-1?"Done":"Next →"}</button></div>`;
+  $("tourcard").classList.remove("hide");
+}
+
+// ── render loop ───────────────────────────────────────────────────────────
+function renderAll(s){
+  renderHero(s); renderPipe(s); renderKPIs(s); renderAlerts(s); renderTicker(s);
+  chartHist(s); chartCrit(s); chartScatter(s); chartGantt(s);
+  renderBoard(s); renderBench(s); renderFeed(s); renderCmds(s); renderPrims(s);
+  if (UI.open != null) renderDrawer();
+  $("demo").classList.toggle("hide", !s.demo);
+  $("foot").textContent = `Jury ${s.version ? "v" + s.version : ""} · ${s.cases.length} case${s.cases.length===1?"":"s"} · updated ${new Date(s.generated_at*1000).toLocaleTimeString()}`;
+  document.title = `${s.cases.filter(c => stage(c)==="human").length ? "(" + s.cases.filter(c => stage(c)==="human").length + ") " : ""}Jury · ${s.rubric.name}`;
+}
+function shiftDemo(raw){
+  const d = JSON.parse(JSON.stringify(raw)), k = nowS() - (d.generated_at || nowS());
+  const walk = (x) => { if (Array.isArray(x)) return x.forEach(walk); if (x && typeof x === "object") for (const key of Object.keys(x)) { if (["at","created_at","updated_at"].includes(key) && typeof x[key] === "number") x[key] += k; else walk(x[key]); } };
+  walk(d); d.generated_at = nowS(); d.demo = true; return d;
+}
+async function load(){
+  let s;
+  if (window.JURY_DEMO) s = UI.data && UI.data.demo ? {...UI.data, generated_at: nowS()} : shiftDemo(window.JURY_DEMO);
+  else { const r = await fetch("/api/state", {cache: "no-store"}); if (!r.ok) throw new Error(r.status); s = await r.json(); }
+  UI.lastOk = Date.now();
+  const sig = JSON.stringify([s.cases, s.settings, s.bench]);
+  const first = !UI.data;
+  UI.data = s;
+  if (sig !== UI.sig || first) { UI.sig = sig; renderAll(s); }
+  else { $("foot").textContent = $("foot").textContent.replace(/updated .*/, "updated " + new Date(s.generated_at*1000).toLocaleTimeString()); }
+  if (first) {
+    const m = location.hash.match(/^#case-(\d+)/); if (m) openCase(+m[1]);
+    if (!tryLS("jury.toured") && !m) setTimeout(() => { if (tourI < 0) $("tourBtn").classList.add("tour-pulse"); }, 600);
+  }
+}
+async function tick(){ try { await load(); } catch(e) { $("livetxt").textContent = "Offline"; $("live").classList.add("stale"); if (!UI.data) $("headline").innerHTML = `Can't reach<br><span class="r">Jury.</span>`, $("lede").innerHTML = "<b>Is <code>jury up</code> running?</b> Or try <code>jury demo</code> for a recorded floor."; } tickClock(); }
+
+// ── wiring ────────────────────────────────────────────────────────────────
+document.addEventListener("click", (e) => {
+  const cp = e.target.closest("[data-copy]"); if (cp) { e.stopPropagation(); copy(cp.dataset.copy); return; }
+  const tb = e.target.closest("[data-tour]"); if (tb) { const v = +tb.dataset.tour; tour(v < 0 ? -1 : v); return; }
+  const f = e.target.closest("[data-filter]"); if (f) { UI.filter = (UI.filter === f.dataset.filter && f.closest("#pipe")) ? "all" : f.dataset.filter; UI.sel = -1; renderPipe(UI.data); renderBoard(UI.data); if (f.closest("#pipe")) $("board").scrollIntoView({behavior: "smooth"}); return; }
+  const ff = e.target.closest("[data-feed]"); if (ff) { UI.feedF = ff.dataset.feed; UI.feedN = 22; renderFeed(UI.data); return; }
+  if (e.target.closest("[data-clear]") || e.target.id === "clear") { UI.filter = "all"; UI.q = ""; UI.sort = "rank"; $("q").value = ""; $("sort").value = "rank"; renderPipe(UI.data); renderBoard(UI.data); return; }
+  const o = e.target.closest("[data-open]"); if (o && !e.target.closest("a")) { openCase(+o.dataset.open); return; }
+  const v = e.target.closest("#vseg button"); if (v) { UI.b.decision = v.dataset.v; syncBuilder(); return; }
+});
+$("more").onclick = () => { UI.feedN += 40; renderFeed(UI.data); };
+$("q").addEventListener("input", (e) => { UI.q = e.target.value.trim(); UI.sel = -1; renderBoard(UI.data); });
+$("sort").addEventListener("change", (e) => { UI.sort = e.target.value; renderBoard(UI.data); });
+$("vscore").addEventListener("input", (e) => { UI.b.score = +e.target.value; syncBuilder(); });
+$("keep").addEventListener("change", (e) => { UI.b.keep = e.target.checked; syncBuilder(); });
+$("vnote").addEventListener("input", (e) => { UI.b.note = e.target.value; syncBuilder(); });
+$("vcopy").onclick = () => copy($("vout").textContent);
+$("dclose").onclick = closeCase; $("scrim").onclick = closeCase;
+$("dprev").onclick = () => step(-1); $("dnext").onclick = () => step(1);
+$("tourBtn").onclick = () => tour(0);
+$("helpBtn").onclick = () => $("help").classList.toggle("hide");
+$("help").onclick = (e) => { if (e.target.id === "help") $("help").classList.add("hide"); };
+function themeNow(){ return document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
+function syncThemeTxt(){ $("themeTxt").textContent = themeNow() === "dark" ? "Light" : "Dark"; }
+function setTheme(t){ document.documentElement.setAttribute("data-theme", t); syncThemeTxt(); tryLS("jury.theme", t); if (UI.data) renderAll(UI.data); }
+$("themeBtn").onclick = () => { const cur = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); setTheme(cur === "dark" ? "light" : "dark"); };
+{ const t = tryLS("jury.theme"); if (t) document.documentElement.setAttribute("data-theme", t); syncThemeTxt(); }
+document.addEventListener("keydown", (e) => {
+  const typing = e.target.matches("input, textarea, select");
+  if (e.key === "Escape") { if (!$("help").classList.contains("hide")) return $("help").classList.add("hide"); if (tourI >= 0) return tour(-1); if (UI.open != null) return closeCase(); if (typing) e.target.blur(); return; }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  const s = UI.data; if (!s) return;
+  if (e.key === "/") { e.preventDefault(); $("board").scrollIntoView(); $("q").focus(); }
+  else if (e.key === "?") $("help").classList.toggle("hide");
+  else if (e.key === "t") $("themeBtn").click();
+  else if (e.key === "g") tour(0);
+  else if (e.key === "[" ) step(-1);
+  else if (e.key === "]") step(1);
+  else if (e.key === "j" || e.key === "k") { const list = visible(s); if (!list.length) return; UI.sel = Math.max(0, Math.min(list.length - 1, UI.sel + (e.key === "j" ? 1 : -1))); renderBoard(s); document.querySelector(".board tr.sel")?.scrollIntoView({block: "nearest"}); if (UI.open != null) openCase(list[UI.sel].number); }
+  else if (e.key === "Enter" && UI.sel >= 0) { const list = visible(s); if (list[UI.sel]) openCase(list[UI.sel].number); }
+});
+// highlight the nav item for the section in view
+const io = new IntersectionObserver((ents) => { for (const en of ents) if (en.isIntersecting) document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + en.target.id)); }, {rootMargin: "-45% 0px -50% 0px"});
+document.querySelectorAll("main > section").forEach(sec => io.observe(sec));
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (UI.data) { chartHist(UI.data); chartScatter(UI.data); chartGantt(UI.data); } }, 120); });
+tick(); setInterval(tick, 3000); setInterval(tickClock, 1000);
 </script>
 </body>
 </html>

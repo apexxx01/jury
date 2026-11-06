@@ -22,9 +22,11 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Sw
 [![Repro: one command](https://img.shields.io/badge/repro-one%20docker%20command-2496ed?logo=docker&logoColor=white)](#reproduce-it-without-any-llm)
 [![Judges](https://img.shields.io/badge/bench-Clerk%20%C2%B7%20Auditor%20%C2%B7%20Inspector%20%C2%B7%20Critic-6e5494)](#the-bench)
 
-[▶ Demo video](DEMO_VIDEO_URL) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
+[▶ Demo video](DEMO_VIDEO_URL) · [The console](#the-console) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
 
-<img src="docs/img/leaderboard.png" alt="The Jury judging floor: a live ticker, floor totals, the rubric strip, each case with block meters, red flags and its verdict stamp, and a docket of cases waiting on a human, copy alerts and judge lean" width="820">
+<img src="docs/img/console.png" alt="The Jury console: a headline saying 12 cases on the floor and 3 need you, a five-stage pipeline from filed to verdict, floor KPIs, and a strip of alerts for copies, judge splits and cases waiting on a human" width="820">
+
+<sub>The console on the recorded demo floor (<code>uv run jury demo</code>): sample teams, plus Jury's own dry run as Case #001.</sub>
 
 </div>
 
@@ -38,6 +40,7 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Sw
 | **Who it's for** | Hackathon organisers, hiring teams reviewing take-homes, grant committees: anyone with a pile of repos and too few reviewers. |
 | **What's new** | The AI never decides. It does the clone-run-check grind, catches copies and leaked keys, flags its own disagreements, and hands a human a case file. |
 | **Switch** | Rooms built from templates, room documents, room links, addressing, people-in-the-loop approvals, and two agents written directly on the protocol. [Details ↓](#how-switch-is-used) |
+| **See it** | `uv run jury demo` opens the console on a recorded floor in your browser. No Switch, no keys. [More ↓](#the-console) |
 | **Try it** | `docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke` runs the whole loop in one command. [More ↓](#reproduce-it-without-any-llm) |
 
 ## The problem
@@ -103,6 +106,41 @@ sequenceDiagram
   C->>F: verdict + Leaderboard doc + web view
 ```
 
+## The console
+
+Everything the bench does, on one page at http://127.0.0.1:8787, refreshed every 3 seconds. Clerk's chat
+replies and the floor's Leaderboard document carry the same numbers; the console is where you see the whole
+floor at once.
+
+- **Where every case is.** A pipeline from filed, to audited, to the AI panel, to *needs a human*, to the
+  verdict, with live counts. Click a stage to filter the leaderboard to it.
+- **What needs attention.** Possible copies, judges who split by 4+ points, cases waiting on a human (red once
+  they pass the reminder time), appeals and dead links. One click opens the case.
+- **The floor in charts.** Score distribution against the shortlist bar, each criterion's average and range,
+  the AI panel's score against the human's, and a timeline of every case: judging, waiting, verdict, with each
+  scorecard and appeal marked. Every mark has a tooltip and opens its case.
+- **The leaderboard.** Ranked by verdict then score, with star ratings, per-criterion mini bars, who on the
+  bench has filed, flags and a verdict stamp. Search, filter, sort, `j`/`k` to move.
+- **The case file.** A score receipt that shows the arithmetic, a radar against the floor (or any other case),
+  every scorecard with splits outlined in red, the judges' notes, red flags and a timeline. At the bottom, a
+  verdict builder: pick shortlist, maybe or pass, set the score, add a note, and copy the exact command to
+  paste in the room. Verdicts stay in chat so they're on the record under the judge's own name.
+- **The bench.** What each judge owns, how many scorecards it filed, its average, how fast it replies, what it
+  still owes, and its lean against the humans' scores.
+- **Activity and commands.** Every event, newest first, and every Clerk command grouped by where you say it,
+  each one click to copy.
+
+There's a 40-second guided tour (`g`), shortcuts (`?`), and light and dark themes (`t`).
+
+<img src="docs/img/case-file.png" alt="A case file in the Jury console: the score, a star rating, rank and percentile, a radar of the four criteria against the floor average, a score receipt with the weighted arithmetic, and the scorecard table" width="820">
+
+<img src="docs/img/insights.png" alt="Charts in the Jury console: score distribution by outcome with the shortlist line, criteria averages with ranges, panel against human scores, and a timeline of every case" width="820">
+
+`uv run jury demo` serves the console on a recorded floor ([`jury/static/demo.json`](jury/static/demo.json),
+built by [`scripts/make_demo.py`](scripts/make_demo.py) through the same scoring code and snapshot as a live
+floor). The sample teams aren't real repositories, so they don't link anywhere. Case #001 is Jury's own bench
+judging this repo on the author's machine.
+
 ## Built for a real judging team
 
 Beyond the first pass, the parts an organiser actually needs at 1,500 submissions:
@@ -116,7 +154,7 @@ Beyond the first pass, the parts an organiser actually needs at 1,500 submission
 - **Appeals.** A participant replies `appeal <why>` in their intake thread. Clerk sets the verdict aside (it's
   kept in the record), reopens the case and pings its judge.
 - **Numbers for the organiser.** `@jury-clerk stats` reports the median time from filing to a full panel,
-  red-flag and copy counts, appeals, and how often humans overrode the panel. The live leaderboard shows the
+  red-flag and copy counts, appeals, and how often humans overrode the panel. The console shows the
   same.
 - **Every score explains itself.** `@jury-clerk explain 7` shows the arithmetic: each criterion, which judges
   scored it, the mean, the weight, the points, and whether a human overrode the total.
@@ -216,9 +254,10 @@ uv run jury submit https://github.com/a/b https://github.com/c/d   # file submis
 uv run jury import submissions.csv                                 # every repo link in a CSV export
 uv run jury audit https://github.com/a/b                           # run the Auditor locally, no server needed
 uv run jury export --csv results.csv                               # the leaderboard, per-criterion means, flags
+uv run jury demo                                                   # the console on a recorded floor
 ```
 
-The live leaderboard is at http://127.0.0.1:8787.
+While `jury up` runs, the console is at http://127.0.0.1:8787.
 
 ## Reproduce it without any LLM
 
@@ -255,7 +294,8 @@ Jury smoke test · https://github.com/psf/requests
 
 Unit tests: `uv run pytest` covers the protocol client against a fake Switch server (SSE
 parsing, reconnect with the same connection id and `Last-Event-ID`, room claims, catch-up), scorecard and
-verdict parsing, the scoring arithmetic, the Auditor against fixture repos, Console discovery and state. CI
+verdict parsing, the scoring arithmetic, the Auditor against fixture repos, Console discovery, state, and the
+console's snapshot, demo floor and web server. CI
 runs them with ruff on every push.
 
 ## How scoring works
@@ -299,11 +339,11 @@ jury/clerk.py         the floor: case rooms, scorecards, disagreements, verdicts
 jury/auditor.py       the deterministic checks
 jury/auditor_agent.py the Auditor as a Switch agent
 jury/scoring.py       rubric, scorecard and verdict parsing, the arithmetic
-jury/cli.py           jury up · doctor · submit · import · audit · export
-jury/web.py + static/ the live leaderboard
+jury/cli.py           jury up · doctor · submit · import · audit · export · demo
+jury/web.py + static/ the console (one HTML file, no build step) and the demo floor
 templates/            jury-bench.template.yaml (Inspector + Critic + chambers room)
 rubrics/              flip-the-switch.yaml, take-home.yaml
-scripts/              stand-in judges, smoke test, post-as-a-human helper
+scripts/              stand-in judges, smoke test, post-as-a-human helper, demo floor builder
 ```
 
 ## How it was built

@@ -21,6 +21,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from .similarity import fingerprint_tree
+
 SKIP_DIRS = {".git", "node_modules", "vendor", "dist", "build", ".venv", "venv", "__pycache__", ".next", "target", ".turbo"}
 TEXT_EXT = {
     ".py",
@@ -124,6 +126,9 @@ class Report:
     repro: dict[str, Any] = field(default_factory=dict)
     commits: dict[str, Any] = field(default_factory=dict)
     secrets: list[dict[str, Any]] = field(default_factory=list)
+    fingerprint: list[str] = field(default_factory=list, repr=False)
+    commit_ids: list[str] = field(default_factory=list, repr=False)
+    copies: list[str] = field(default_factory=list)
     scores: dict[str, float] = field(default_factory=dict)
     notes: dict[str, str] = field(default_factory=dict)
     red_flags: list[str] = field(default_factory=list)
@@ -405,6 +410,9 @@ async def audit(owner: str, repo: str, workdir: Path, start: datetime, end: date
     code, head = await _run(["git", "rev-parse", "--short", "HEAD"], cwd=dest)
     rep.head = head.strip() if code == 0 else None
     rep.commits = await commit_window(dest, start, end)
+    rep.fingerprint = await asyncio.to_thread(fingerprint_tree, dest)
+    code, out = await _run(["git", "rev-list", "--max-count=300", "HEAD"], cwd=dest, timeout=30)
+    rep.commit_ids = out.split() if code == 0 else []
     score(rep)
     c = rep.commits
     if c.get("total") and c.get("during", 0) == 0:
@@ -436,6 +444,7 @@ def render(rep: Report, *, detailed: bool = False) -> str:
             + f", {c['authors']} author(s)"
         )
     lines.append(f"**Secrets scan** {tick(not rep.secrets)}: " + (f"{len(rep.secrets)} possible secret(s)" if rep.secrets else "clean"))
+    lines.append(f"**Copy check** {tick(not rep.copies)}: " + ("; ".join(rep.copies) if rep.copies else "no overlap with earlier cases"))
     if rep.red_flags:
         lines += ["", "🚩 " + "\n🚩 ".join(rep.red_flags)]
     if detailed:

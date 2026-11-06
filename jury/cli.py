@@ -179,6 +179,7 @@ async def cmd_up(cfg: config.Config, args: argparse.Namespace) -> None:
     clerk = Clerk(cfg, state, rubric, clerk_agent, AUDITOR)
     aud = AuditorAgent(cfg, rubric, auditor_agent)
     aud.lookup = state.by_room
+    aud.case_by_key = lambda k: state.cases.get(k.lower())
 
     judges = await clerk.present_judges()
     missing = [j for j in cfg.judges if j not in judges]

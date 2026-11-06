@@ -5,7 +5,7 @@ tags: switch, ai, agents, hackathon
 
 # I built a hackathon judging floor in Discord on Switch
 
-*Flip the Switch hackathon, Nov 2026 · repo: https://github.com/YOUR_GITHUB/jury*
+*Flip the Switch hackathon, Nov 2026 · repo: https://github.com/apexxx01/jury*
 
 Flip the Switch had 7,516 people registered. Somebody has to open every submission, clone it, check whether
 it runs and find the demo video, before any real judging starts. At five minutes a repo that's days of work,

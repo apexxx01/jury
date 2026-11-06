@@ -111,7 +111,7 @@ server running (it uses Docker), a messaging app connected to it (Discord, Slack
 Telegram all work), [uv](https://docs.astral.sh/uv/) and git.
 
 ```bash
-git clone https://github.com/YOUR_GITHUB/jury && cd jury
+git clone https://github.com/apexxx01/jury && cd jury
 uv sync
 uv run jury doctor     # checks the server, token, messaging app and judges
 uv run jury up         # registers Clerk + Auditor, creates #jury-intake and #jury-floor

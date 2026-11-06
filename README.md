@@ -2,7 +2,7 @@
 
 # ⚖️ Jury
 
-**A hackathon judging floor that runs in your Discord, on [Switch](https://github.com/sandbox-quantum/switch).**
+**A hackathon judging floor that runs in your team chat, on [Switch](https://github.com/sandbox-quantum/switch).**
 
 Every submission gets its own room. Three AI judges gather evidence and argue it out in the open.
 A human gives the verdict.
@@ -14,6 +14,16 @@ A human gives the verdict.
 </div>
 
 ---
+
+## 60-second tour
+
+| | |
+|---|---|
+| **What** | Paste a submission's GitHub link in a chat channel. Jury opens a room for it, three AI judges gather evidence and argue, and a human gives the verdict. |
+| **Who it's for** | Hackathon organisers, hiring teams reviewing take-homes, grant committees: anyone with a pile of repos and too few reviewers. |
+| **What's new** | The AI never decides. It does the clone-run-check grind, catches copies and leaked keys, flags its own disagreements, and hands a human a case file. |
+| **Switch** | Rooms built from templates, room documents, room links, addressing, people-in-the-loop approvals, and two agents written directly on the protocol. [Details ↓](#how-switch-is-used) |
+| **Try it** | `docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke` runs the whole loop in one command. [More ↓](#reproduce-it-without-any-llm) |
 
 ## The problem
 
@@ -77,6 +87,24 @@ sequenceDiagram
   H->>R: @jury-clerk verdict shortlist 88
   C->>F: verdict + Leaderboard doc + web view
 ```
+
+## Built for a real judging team
+
+Beyond the first pass, the parts an organiser actually needs at 1,500 submissions:
+
+- **Copy check.** The Auditor fingerprints every submission and flags shared git history (forks, one project
+  submitted twice) and shared code. Boilerplate that many teams share is ignored. It warns **both** case
+  rooms, so the earlier case's judges see it too.
+- **Judges get assigned.** With `JURY_JUDGE_USERS=asha,ben,…`, Clerk deals cases out to the least-loaded human
+  judge and @mentions them when a case is ready. `@jury-clerk my queue` shows each judge their pile, and
+  `assign 7 to @ben` moves one.
+- **Appeals.** A participant replies `appeal <why>` in their intake thread. Clerk sets the verdict aside (it's
+  kept in the record), reopens the case and pings its judge.
+- **Numbers for the organiser.** `@jury-clerk stats` reports the median time from filing to a full panel,
+  red-flag and copy counts, appeals, and how often humans overrode the panel. The live leaderboard shows the
+  same.
+- **Bulk in, bulk out.** `jury import submissions.csv` files every repo link in a platform export.
+  `jury export --csv` writes the results with per-criterion means, flags and verdicts.
 
 ## How Switch is used
 
@@ -144,7 +172,10 @@ most of it Docker and chat-app setup; [`docs/RUNBOOK.md`](docs/RUNBOOK.md) walks
 |---|---|---|
 | a GitHub link | `#jury-intake` | a case room opens (duplicates are caught) |
 | `@jury-clerk verdict shortlist 88 note` | a case room | the verdict is recorded. The score is optional and overrides the panel's |
-| `@jury-clerk leaderboard` / `status` / `case 7` | anywhere | the ranking, counts, or one case |
+| `@jury-clerk leaderboard` / `status` / `stats` / `case 7` | anywhere | the ranking, counts, organiser numbers, or one case |
+| `@jury-clerk my queue` · `assign 7 to @ben` | anywhere | a human judge's pile · hand a case to someone |
+| `appeal <why>` | the submission's intake thread | the verdict is set aside and the case goes back to its judge |
+| `@jury-clerk summon` | a case room | pull in a judge that was added or re-created after the case opened |
 | `@jury-clerk rescore` / `rescan` / `reaudit` | a case room | recount, re-read the room for scorecards Clerk missed, or have the Auditor re-clone after a fix |
 | `@jury-auditor evidence` | a case room | every fact it checked |
 
@@ -217,6 +248,8 @@ runs them with ruff on every push.
   files, CI, `.env.example`, licence
 - **Presentation:** README length and structure, a demo video link, visuals, a section about Switch
 - **Rules:** commits before, during and after the hackathon window, and the number of authors
+- **Copies:** commits shared with any earlier case, and the share of distinctive code lines found in another
+  submission (lines common to many submissions don't count)
 - **Secrets:** AWS, GitHub, Anthropic, OpenAI, Slack, Discord and Google keys, private keys and committed
   `.env` files. Placeholders are ignored, and every hit is reported masked with file and line
 

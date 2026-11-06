@@ -89,3 +89,14 @@ def test_console_serves_page_and_state(tmp_path):
     assert b"200 OK" in page and b"Jury Console" in page
     assert b'"ok": 1' in state
     assert b"404" in missing
+
+
+def test_pages_build_bakes_in_the_demo_floor(tmp_path):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("build_pages", ROOT / "scripts" / "build_pages.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    page = mod.build(tmp_path).read_text(encoding="utf-8")
+    assert "window.JURY_DEMO = {" in page and "og:image" in page
+    assert (tmp_path / "social-preview.png").exists() and (tmp_path / ".nojekyll").exists()

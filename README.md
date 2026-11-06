@@ -22,7 +22,7 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Sw
 [![Repro: one command](https://img.shields.io/badge/repro-one%20docker%20command-2496ed?logo=docker&logoColor=white)](#reproduce-it-without-any-llm)
 [![Judges](https://img.shields.io/badge/bench-Clerk%20%C2%B7%20Auditor%20%C2%B7%20Inspector%20%C2%B7%20Critic-6e5494)](#the-bench)
 
-[▶ Demo video](DEMO_VIDEO_URL) · [The console](#the-console) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
+[▶ Demo video](DEMO_VIDEO_URL) · [**Try the console live**](https://apexxx01.github.io/jury/) · [The console](#the-console) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
 
 <img src="docs/img/console.png" alt="The Jury console: a headline saying 12 cases on the floor and 3 need you, a five-stage pipeline from filed to verdict, floor KPIs, and a strip of alerts for copies, judge splits and cases waiting on a human" width="820">
 
@@ -40,7 +40,7 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Sw
 | **Who it's for** | Hackathon organisers, hiring teams reviewing take-homes, grant committees: anyone with a pile of repos and too few reviewers. |
 | **What's new** | The AI never decides. It does the clone-run-check grind, catches copies and leaked keys, flags its own disagreements, and hands a human a case file. |
 | **Switch** | Rooms built from templates, room documents, room links, addressing, people-in-the-loop approvals, and two agents written directly on the protocol. [Details ↓](#how-switch-is-used) |
-| **See it** | `uv run jury demo` opens the console on a recorded floor in your browser. No Switch, no keys. [More ↓](#the-console) |
+| **See it** | **[apexxx01.github.io/jury](https://apexxx01.github.io/jury/)**, the console on a recorded floor, in your browser. Or `uv run jury demo` locally. [More ↓](#the-console) |
 | **Try it** | `docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke` runs the whole loop in one command. [More ↓](#reproduce-it-without-any-llm) |
 
 ## The problem

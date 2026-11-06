@@ -165,7 +165,7 @@ docker compose -f repro/compose.yaml down -v     # clean up
 ```
 
 The smoke test files a real repository, waits for all three scorecards, gives a human verdict through the
-Gateway and checks that the case lands on the leaderboard (http://127.0.0.1:8787 while it runs). No Switch
+Gateway and checks that the case lands on the leaderboard (http://127.0.0.1:18787 while it runs). No Switch
 Console, chat app or LLM keys involved; the stand-ins file canned scorecards, so this proves the plumbing,
 not the judging.
 

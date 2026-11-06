@@ -6,10 +6,11 @@
 # + scripted stand-in judges + the end-to-end smoke test. No Switch Console, no
 # chat app, no LLM keys. The smoke test files a real repo, waits for all three
 # scorecards, gives a human verdict through the Gateway and checks the result;
-# exit code 0 means the loop works. The leaderboard is at http://127.0.0.1:8787
+# exit code 0 means the loop works. The leaderboard is at http://127.0.0.1:18787
 # while it runs. `docker compose -f repro/compose.yaml down -v` cleans up.
 #
 # Every secret below is a throwaway for this local demo. Don't reuse them.
+# Needs Docker Compose 2.23+ (Docker Desktop 4.26+) for the inline config.
 name: jury-repro
 
 x-demo: &demo
@@ -25,22 +26,15 @@ services:
       POSTGRES_USER: switch_owner
       POSTGRES_PASSWORD: jury-repro-owner
       POSTGRES_DB: switch
+    configs:
+      # Runs once on the fresh volume: the unprivileged role switch-core serves with.
+      - source: app-role
+        target: /docker-entrypoint-initdb.d/10-app-role.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U switch_owner"]
+      test: ["CMD-SHELL", "pg_isready -U switch_owner -d switch && psql -U switch_owner -d switch -tAc \"SELECT 1 FROM pg_roles WHERE rolname='switch_app'\" | grep -q 1"]
       interval: 2s
       timeout: 3s
-      retries: 20
-
-  init-db:
-    image: postgres:16-alpine
-    environment:
-      PGPASSWORD: jury-repro-owner
-    entrypoint: >
-      sh -c "psql -h postgres -U switch_owner -d postgres -tc \"SELECT 1 FROM pg_roles WHERE rolname='switch_app'\" | grep -q 1 ||
-             psql -h postgres -U switch_owner -d postgres -c \"CREATE ROLE switch_app LOGIN PASSWORD 'jury-repro-app' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS;\""
-    depends_on:
-      postgres:
-        condition: service_healthy
+      retries: 30
 
   switch:
     image: ghcr.io/sandbox-quantum/switch-core:${SWITCH_VERSION:-0.31.0}
@@ -62,8 +56,8 @@ services:
     ports:
       - "127.0.0.1:${REPRO_SWITCH_PORT:-18000}:8000"
     depends_on:
-      init-db:
-        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
 
   jury:
     build: ..
@@ -73,9 +67,10 @@ services:
     volumes:
       - jury-data:/data
     ports:
-      - "127.0.0.1:8787:8787"
-    restart: on-failure   # waits out Switch's first boot (migrations)
-    depends_on: [switch]
+      - "127.0.0.1:${REPRO_WEB_PORT:-18787}:8787"
+    depends_on:
+      switch:
+        condition: service_healthy
 
   judges:
     build: ..
@@ -84,8 +79,9 @@ services:
       <<: *demo
     volumes:
       - jury-data:/data
-    restart: on-failure
-    depends_on: [switch]
+    depends_on:
+      switch:
+        condition: service_healthy
 
   smoke:
     build: ..
@@ -102,3 +98,8 @@ services:
 
 volumes:
   jury-data:
+
+configs:
+  app-role:
+    content: |
+      CREATE ROLE switch_app LOGIN PASSWORD 'jury-repro-app' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS;

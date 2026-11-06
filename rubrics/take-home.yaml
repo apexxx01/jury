@@ -1,0 +1,29 @@
+# Jury for hiring: score candidates' take-home assignments.
+name: Engineering take-home review
+verdicts: [advance, maybe, decline]
+shortlist_at: 70
+criteria:
+  - id: correctness
+    label: Correctness
+    weight: 35
+    question: Does it do what the brief asked, including the edge cases?
+    judges: [jury-inspector]
+    guide: {0: Does not run., 5: Happy path only., 10: Correct, edge cases handled and tested.}
+  - id: code_quality
+    label: Code quality
+    weight: 25
+    question: Would we be happy to maintain this code?
+    judges: [jury-critic, jury-inspector]
+    guide: {0: Unreadable., 5: Fine but tangled., 10: Clear structure, good names, small functions.}
+  - id: testing
+    label: Testing
+    weight: 20
+    question: Are there meaningful tests, and do they pass?
+    judges: [jury-auditor, jury-inspector]
+    guide: {0: None., 5: Some, shallow., 10: Meaningful tests that pass from a clean clone.}
+  - id: communication
+    label: Communication
+    weight: 20
+    question: Does the README explain decisions and trade-offs?
+    judges: [jury-auditor, jury-critic]
+    guide: {0: No README., 5: Setup only., 10: Decisions, trade-offs and next steps explained.}

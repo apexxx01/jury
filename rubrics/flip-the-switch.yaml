@@ -1,0 +1,47 @@
+# The Flip the Switch hackathon rubric, as published on the event page.
+# Weights add up to 100. Each judge scores the criteria it owns from 0 to 10.
+name: Flip the Switch 2026
+event_url: https://www.wemakedevs.org/hackathons/switch
+verdicts: [shortlist, maybe, pass]
+shortlist_at: 70        # provisional score at which Clerk suggests "shortlist"
+criteria:
+  - id: use_of_switch
+    label: Use of Switch
+    weight: 30
+    question: Is Switch central, and would the project stop working without it?
+    judges: [jury-auditor, jury-critic]
+    guide:
+      0: Switch is not used, or only mentioned in the README.
+      4: An agent is connected to a chat room, but the workflow would work the same without Switch.
+      7: Rooms, addressing and shared context carry the workflow; several Switch features are used on purpose.
+      10: Remove Switch and nothing works. People and several agents hand work to each other through rooms, templates, links or the protocol.
+  - id: technical_execution
+    label: Technical execution
+    weight: 25
+    question: Does it run, and could someone clone the repo and reproduce it?
+    judges: [jury-auditor, jury-inspector]
+    guide:
+      0: Does not install or start.
+      4: Runs after undocumented fixes.
+      7: Runs from the README with small friction; core path works.
+      10: Clean clone to working demo by following the README alone, with tests passing.
+  - id: creativity_impact
+    label: Creativity and impact
+    weight: 25
+    question: Is it a fresh idea that solves a problem a real team has?
+    judges: [jury-critic, jury-inspector]
+    guide:
+      0: A copy of an example with nothing added.
+      4: A known idea, competently done.
+      7: A clear real-world problem with a fresh angle.
+      10: Something a real team would adopt next week.
+  - id: presentation
+    label: Presentation
+    weight: 20
+    question: Do the demo video and README make clear how Switch is used?
+    judges: [jury-auditor, jury-critic]
+    guide:
+      0: No README beyond a title, no video.
+      4: README explains the idea but not how Switch is wired in.
+      7: README shows the setup and the Switch flow; a demo video exists.
+      10: A newcomer understands the Switch flow in two minutes from the README and video.

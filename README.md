@@ -1,11 +1,26 @@
 <div align="center">
 
-# ⚖️ Jury
+<pre>
+                         ⚖
+     ██╗██╗   ██╗██████╗ ██╗   ██╗
+     ██║██║   ██║██╔══██╗╚██╗ ██╔╝
+     ██║██║   ██║██████╔╝ ╚████╔╝
+██   ██║██║   ██║██╔══██╗  ╚██╔╝
+╚█████╔╝╚██████╔╝██║  ██║   ██║
+ ╚════╝  ╚═════╝ ╚═╝  ╚═╝   ╚═╝
+   the judging floor in your team chat
+</pre>
 
-**A hackathon judging floor that runs in your team chat, on [Switch](https://github.com/sandbox-quantum/switch).**
+**Every submission gets a room. AI judges gather the evidence and argue it out in the open.<br>A human gives the verdict.**
 
-Every submission gets its own room. Three AI judges gather evidence and argue it out in the open.
-A human gives the verdict.
+Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Switch](https://www.wemakedevs.org/hackathons/switch) · Track 1: Best Business Workflow
+
+[![CI](https://github.com/apexxx01/jury/actions/workflows/ci.yml/badge.svg)](https://github.com/apexxx01/jury/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-c9a227)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3776ab?logo=python&logoColor=white)](pyproject.toml)
+[![Built on Switch](https://img.shields.io/badge/built%20on-Switch-e0a63e)](https://github.com/sandbox-quantum/switch)
+[![Repro: one command](https://img.shields.io/badge/repro-one%20docker%20command-2496ed?logo=docker&logoColor=white)](#reproduce-it-without-any-llm)
+[![Judges](https://img.shields.io/badge/bench-Clerk%20%C2%B7%20Auditor%20%C2%B7%20Inspector%20%C2%B7%20Critic-6e5494)](#the-bench)
 
 [▶ Demo video](DEMO_VIDEO_URL) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
 

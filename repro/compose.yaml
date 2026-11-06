@@ -43,7 +43,7 @@ services:
         condition: service_healthy
 
   switch:
-    image: ghcr.io/sandbox-quantum/switch-core:${SWITCH_VERSION:-0.40.1}
+    image: ghcr.io/sandbox-quantum/switch-core:${SWITCH_VERSION:-0.31.0}
     environment:
       <<: *demo
       DB_HOST: postgres

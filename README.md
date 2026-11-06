@@ -39,7 +39,7 @@ the call to a human.
      hackathon window**? Did anyone **commit a secret**?
    - **Inspector** (Claude Code) clones it and **actually runs it**, following the README alone, then reports
      the exact commands and errors.
-   - **Critic** (Codex) judges the idea, the impact, the presentation, and whether Switch is central or only
+   - **Critic** (OpenCode, or Codex) judges the idea, the impact, the presentation, and whether Switch is central or only
      mentioned.
 4. Each judge files a scorecard in the room. Clerk tallies them live, and **when two judges are far apart it
    sends the gap back to them**: *"Auditor says 0, Critic says 9 on Use of Switch. Compare your evidence."*
@@ -56,7 +56,7 @@ sequenceDiagram
   participant C as Clerk (protocol agent)
   participant R as #case-007 (new room)
   participant A as Auditor (protocol agent)
-  participant J as Inspector · Critic (Claude Code · Codex)
+  participant J as Inspector · Critic (Claude Code · OpenCode)
   participant H as Human judge
   participant F as #jury-floor
   P->>I: https://github.com/them/project
@@ -87,7 +87,7 @@ away and Jury is a Python script with nobody to talk to.
 | **Room documents** | *Submission*, *Rubric* and *Auditor report* in each case room, plus a *Leaderboard* on the floor that Clerk rewrites (debounced, because Switch announces every edit). | `create_room_document`, `update_room_document` |
 | **Room links** | case ↔ floor ↔ intake, so any agent in a case room can see where the case came from and where the results go. | `link_rooms` |
 | **Shared context** | Humans and agents read the same thread. The Inspector's error output is right there when the Critic argues and when the human decides. | |
-| **Any agent, any model** | Claude Code, Codex and two custom Python agents in one room, each under its own name and avatar. | |
+| **Any agent, any model** | Claude Code, OpenCode and two custom Python agents in one room, each under its own name and avatar. | |
 | **The agent protocol, from scratch** | Clerk and Auditor are always-on agents written directly on SSE + HTTP. Connection ids are reused across reconnects, with `Last-Event-ID` resume, heartbeats at the announced interval, and room-bound ops via `connect_to_room`. There's also a **catch-up replay**: when a room joins the stream, the client re-reads its recent history, covering the gap the protocol docs warn about for rooms that arrive after catch-up. | [`switch.py`](jury/switch.py) |
 | **People in the loop** | Only a human can give a verdict. With Console's auto mode, the Inspector asks a person in the channel before a risky command in someone else's code. | |
 
@@ -98,7 +98,7 @@ away and Jury is a Python script with nobody to talk to.
 | **Clerk** | Jury (Python, Switch protocol) | — | Opens case rooms, tallies scorecards, raises disagreements, records verdicts, keeps the leaderboard |
 | **Auditor** | Jury (Python, Switch protocol) | Use of Switch, Technical execution, Presentation | Clones the repo and checks facts. Arguments don't move its scores; evidence does |
 | **Inspector** | Claude Code via Switch Console | Technical execution, Creativity and impact | Installs and runs the submission from the README alone, then reports exact commands and errors |
-| **Critic** | Codex via Switch Console | Use of Switch, Creativity and impact, Presentation | Asks whether the project would stop working without Switch, names the team that would use it, and pushes back on the others |
+| **Critic** | OpenCode (or Codex) via Switch Console | Use of Switch, Creativity and impact, Presentation | Asks whether the project would stop working without Switch, names the team that would use it, and pushes back on the others |
 
 Scores use the event's own rubric: **30% Use of Switch, 25% Technical execution, 25% Creativity and impact,
 20% Presentation** ([`rubrics/flip-the-switch.yaml`](rubrics/flip-the-switch.yaml)). Swap in
@@ -149,7 +149,7 @@ The live leaderboard is at http://127.0.0.1:8787.
 
 ## Reproduce it without any LLM
 
-The whole loop runs against any Switch server without Claude Code or Codex. Scripted stand-in judges file
+The whole loop runs against any Switch server without Claude Code, OpenCode or Codex. Scripted stand-in judges file
 canned scorecards, and the smoke test drives intake, case room, judges, a human verdict through the
 Gateway, and the leaderboard, then checks the result:
 

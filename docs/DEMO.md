@@ -34,7 +34,7 @@ secrets scan. Click the room's documents to show **Submission**, **Rubric** and 
 Show the Inspector's run report (exact commands it ran) and the Critic's critique, each with a scorecard.
 Then show Clerk's tally line, and **if Clerk raised a disagreement, linger on it** and on the judges'
 replies to each other.
-> "Inspector is Claude Code, and it actually ran the project. Critic is Codex, so it's a different model on
+> "Inspector is Claude Code, and it actually ran the project. Critic is OpenCode, so it's a different agent on
 > purpose. When they disagree, Clerk makes them settle it in the room, with evidence, before a human looks."
 
 **1:40–2:05 · The human decides**

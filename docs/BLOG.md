@@ -42,7 +42,7 @@ The bench:
 | Clerk | my Python, on the raw protocol | opens case rooms, tallies scorecards, raises disagreements, records verdicts |
 | Auditor | my Python, on the raw protocol | clones the repo and reports facts: Switch wiring, setup steps, tests, video, commit window, leaked secrets |
 | Inspector | Claude Code via Console | actually installs and runs the submission from the README |
-| Critic | Codex via Console | judges the idea, the impact, and whether Switch is central |
+| Critic | OpenCode via Console | judges the idea, the impact, and whether Switch is central |
 
 Two different models on purpose: a bench of one model agreeing with itself isn't a panel.
 
@@ -153,7 +153,7 @@ already happened, with evidence, in the same thread.
 
 ## Reproducing it without any LLM
 
-Judges will clone this repo, so it had to run without my laptop's Claude and Codex logins. There are scripted
+Judges will clone this repo, so it had to run without my laptop's Claude Code and OpenCode logins. There are scripted
 stand-in judges (`scripts/stand_in_judges.py`) and a smoke test (`scripts/smoke.py`) that drive the whole loop
 against any Switch server: intake, case room, three scorecards, a human verdict posted through the Gateway,
 leaderboard. Then it checks the result. Plus 37 unit tests, including the protocol client against a fake Switch server.

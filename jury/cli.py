@@ -105,7 +105,7 @@ async def publish_bench(clerk: SwitchAgent) -> str:
     if not BENCH_TEMPLATE.exists():
         return "template file missing"
     text = BENCH_TEMPLATE.read_text(encoding="utf-8")
-    desc = "Jury's two LLM judges (Inspector on Claude Code, Critic on Codex) and a chambers room to meet them."
+    desc = "Jury's two LLM judges (Inspector on Claude Code, Critic on OpenCode or Codex) and a chambers room to meet them."
     try:
         existing = [
             t for t in (await clerk.op("list_templates", {"query": BENCH_NAME}) or []) if t.get("name") == BENCH_NAME and t.get("can_edit")

@@ -71,6 +71,7 @@ class Clerk:
         self._doc_task: asyncio.Task[None] | None = None
         self._doc_dirty = False
         self.doc_debounce = 20.0
+        self._creator_unlinked = False
 
     @property
     def name(self) -> str:
@@ -153,19 +154,26 @@ class Clerk:
         }
 
     async def _create_room(self, room: dict[str, Any], kickoff: str | None) -> dict[str, Any]:
-        """create_room_from_yaml, trying with the configured bridge and people first."""
-        attempts = []
-        full = dict(room)
+        """create_room_from_yaml, degrading gracefully.
+
+        Tries, in order: the deployer ({$creator}) plus named judges; only the
+        named judges; nobody; and finally no bridge. ``{$creator}`` fails when
+        the agents' owner has no account linked on the messaging app (common
+        when the registration token belongs to the server's bootstrap user),
+        and named people keep the human judges in the room anyway.
+        """
+        base = dict(room)
         if self.cfg.bridge:
-            full["bridge"] = self.cfg.bridge
-        users = ["{$creator}", *self.cfg.judge_users]
-        if users:
-            full["users"] = users
-        attempts.append(full)
-        if users:
-            attempts.append({k: v for k, v in full.items() if k != "users"})
+            base["bridge"] = self.cfg.bridge
+        named = list(self.cfg.judge_users)
+        attempts: list[dict[str, Any]] = []
+        if not self._creator_unlinked:
+            attempts.append({**base, "users": ["{$creator}", *named]})
+        if named:
+            attempts.append({**base, "users": named})
+        attempts.append(dict(base))
         if self.cfg.bridge:
-            attempts.append({k: v for k, v in attempts[-1].items() if k != "bridge"})
+            attempts.append({k: v for k, v in base.items() if k != "bridge"})
         last: Exception | None = None
         for i, body in enumerate(attempts):
             doc: dict[str, Any] = {"room": body}
@@ -175,6 +183,14 @@ class Clerk:
                 return await self.agent.op("create_room_from_yaml", {"yaml": yaml.safe_dump(doc, sort_keys=False, allow_unicode=True)})
             except SwitchError as e:
                 last = e
+                if "{$creator}" in e.detail or "no linked account" in e.detail:
+                    if not self._creator_unlinked:
+                        self._creator_unlinked = True
+                        hint = (
+                            "" if named else " Set JURY_JUDGE_USERS=<your username on the messaging app> in .env to be added to every room."
+                        )
+                        log.warning("the agents' owner has no linked account on the messaging app.%s", hint)
+                    continue
                 if e.status in (400, 403, 404, 422) and i + 1 < len(attempts):
                     log.warning("room create refused (%s); retrying with less", e.detail[:200])
                     continue

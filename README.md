@@ -48,6 +48,11 @@ the call to a human.
 6. The verdict lands on **`#jury-floor`**, in the floor's **Leaderboard** document, and on a live web
    leaderboard. Export to CSV when you're done.
 
+<img src="docs/img/case-room.png" alt="A real Jury case room in Mattermost: the Auditor's report and scorecard, then the Inspector stopping to ask a human before running code it cloned" width="820">
+
+*A real case room: the Auditor's facts and scorecard, then the Inspector stopping to ask a human before it runs
+code it just cloned, because Console's auto mode flagged it.*
+
 ```mermaid
 sequenceDiagram
   autonumber

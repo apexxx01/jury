@@ -32,7 +32,7 @@ HELP = """**Jury Clerk** · how this floor works
 • Paste a GitHub repo link in **#{intake}** and I open a case room for it. Reply `appeal <why>` in that thread to appeal a verdict.
 • In a case room, judges post scorecards; I tally them and flag disagreements.
 • A human judge decides: `@{clerk} verdict shortlist 88 great use of rooms` (verdicts: {verdicts}; the score is optional).
-• `@{clerk} explain 7` · `@{clerk} calibration` · `@{clerk} close intake` / `open intake`
+• `@{clerk} explain 7` · `@{clerk} calibration` · `@{clerk} reopen 7` (set a verdict aside) · `@{clerk} close intake` / `open intake`
 • `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} stats` · `@{clerk} my queue` · `@{clerk} assign 7 to @name` · `@{clerk} case 7` · `@{clerk} rescore` / `rescan` / `summon` (in a case room) · `@{clerk} help`"""
 
 INTAKE_INSTRUCTIONS = """This is the Jury intake room. People paste GitHub repository links of
@@ -653,6 +653,17 @@ class Clerk:
             await self.agent.post(self.state.rooms["intake"], "🚪 **Intake is open again.** Paste a repo link to file it.")
             if room_id != self.state.rooms["intake"]:
                 await self.agent.post(room_id, "Intake open.", thread)
+        elif m := re.match(r"(?:reopen|undo verdict|set aside)\b(?:\s*(?:case\s*)?#?(\d+))?", text):
+            who = p.get("on_behalf_of") or p.get("sender_name") or "someone"
+            c = self.state.by_number(int(m.group(1))) if m.group(1) else case
+            if await self._is_agent(who):
+                await self.agent.post(room_id, "Only a human judge can set a verdict aside.", thread)
+            elif not c:
+                await self.agent.post(room_id, "Which case? `reopen 7`, or say `reopen` in its room.", thread)
+            elif not c.verdict:
+                await self.agent.post(room_id, f"{c.label} has no verdict to set aside.", thread)
+            else:
+                await self.reopen(c, who, room_id, thread)
         elif text.startswith(("stats", "metrics")):
             await self.agent.post(room_id, self.stats_md(), thread)
         elif text.startswith(("leaderboard", "board", "rank", "top")):
@@ -796,6 +807,23 @@ class Clerk:
                 + f"Judges, weigh the appeal here; then a human gives the verdict again with `@{self.name} verdict …`.",
             )
         await self.refresh_floor(note=f"📮 Appeal on **{case.label}** `{case.owner}/{case.repo}` by {who}")
+        self._changed()
+
+    async def reopen(self, case: Case, who: str, room_id: str | None = None, thread: str | None = None) -> None:
+        """A human sets a verdict aside: the case goes back to waiting for one, and the old verdict stays on record."""
+        prev = case.verdict or {}
+        case.extra.setdefault("reopened", []).append({"by": who, "at": time.time(), "previous": prev})
+        case.verdict = None
+        expected = case.extra.get("judges") or [self.auditor_name]
+        case.status = "scored" if all(j in case.scorecards for j in expected) else "open"
+        case.updated_at = time.time()
+        was = prev.get("decision", "").upper() + (f" {prev['score']:g}" if prev.get("score") is not None else "")
+        msg = f"↩️ **{case.label} reopened by {who}.** The verdict ({was}) is set aside and kept on record. Give a new one with `@{self.name} verdict …`."
+        if case.room_id:
+            await self.agent.post(case.room_id, msg, thread if room_id == case.room_id else None)
+        if room_id and room_id != case.room_id:
+            await self.agent.post(room_id, msg, thread)
+        await self.refresh_floor(note=f"↩️ **{case.label}** `{case.owner}/{case.repo}` reopened by {who}")
         self._changed()
 
     def queue_md(self, who: str) -> str:

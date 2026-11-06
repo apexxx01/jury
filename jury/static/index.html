@@ -82,11 +82,22 @@ h1 .o{-webkit-text-stroke:2px var(--fg);color:transparent}
 .lede{max-width:66ch;font-size:clamp(15px,1.35vw,18px);font-weight:500;margin:18px 0 0;background:var(--bg);display:inline-block;padding:2px 0}
 .lede b{font-weight:800}
 .hero .side{border-left:2px solid var(--fg);display:grid;grid-template-rows:auto 1fr auto}
-.count{padding:var(--pad);border-bottom:2px solid var(--fg)}
-.count .n{font-family:var(--mono);font-weight:800;font-size:40px;letter-spacing:-.03em;line-height:1;margin-top:8px}
-.count .n i{font-style:normal;color:var(--faint)}
-.bar{height:10px;border:2px solid var(--fg);margin-top:12px;position:relative}
-.bar i{position:absolute;inset:0 auto 0 0;background:var(--fg)}
+.next{padding:var(--pad);border-bottom:2px solid var(--fg);display:grid;gap:10px}
+.next .hd{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.next .pri{font-family:var(--mono);font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;background:var(--fg);color:var(--bg)}
+.next .pri.r{background:var(--red);color:#fff}
+.next .pri.g{background:var(--green);color:#000}
+.next .verb{font-weight:900;font-stretch:62%;font-size:46px;line-height:.88;text-transform:uppercase;text-wrap:balance}
+.next .what{font-weight:800;font-stretch:110%;font-size:17px;line-height:1.15;word-break:break-word}
+.next .what .own{font-weight:500;color:var(--mut)}
+.next .why{font-family:var(--mono);font-size:11.5px;color:var(--mut)}
+.next .go2{justify-self:start;border:2px solid var(--fg);background:var(--fg);color:var(--bg);padding:8px 12px;font-family:var(--mono);font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;box-shadow:3px 3px 0 var(--red);transition:transform .08s,box-shadow .08s}
+.next .go2:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--red)}
+.next .go2:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--red)}
+.pulse2{border-top:1px solid var(--line2);padding-top:10px;margin-top:4px}
+.pulse2 .hd{margin-bottom:6px}
+.pulse2 svg{display:block;width:100%;height:46px}
+.pulse2 .ax2{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:3px}
 .benchbox{padding:14px var(--pad);display:grid;gap:7px;align-content:start}
 .agent{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;font-family:var(--mono);font-size:12.5px;font-weight:700}
 .agent .d{width:10px;height:10px;background:var(--green)}
@@ -487,7 +498,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;paddin
       <p class="lede" id="lede"><b>Jury is a judging floor that lives in your team chat.</b> Every submission gets its own room on Switch. Three AI judges gather evidence and argue it out. A human gives every verdict.</p>
     </div>
     <div class="side">
-      <div class="count"><span class="lbl mut" id="cdlabel">Submissions close in</span><div class="n" id="countdown">--:--:--</div><div class="bar" data-tip="How much of the hackathon window has passed"><i id="windowbar"></i></div><div class="lbl mut" style="margin-top:8px" id="windowtxt"></div></div>
+      <div class="next" id="next"></div>
       <div class="benchbox" id="benchbox"></div>
       <button class="tourbtn" id="tourBtn"><span><span class="lbl" style="opacity:.7">New here?</span><br><b>Take the 40-second tour</b></span><span class="big" style="font-size:40px">→</span></button>
     </div>
@@ -650,6 +661,7 @@ function renderHero(s){
     s.rubric.event_url ? `<a class="chip" href="${esc(s.rubric.event_url)}" target="_blank" rel="noopener">${esc(s.rubric.name)} ↗</a>` : `<span class="chip">${esc(s.rubric.name)}</span>`,
     set.intake_closed ? `<span class="chip r" data-tip="Intake is closed: new links are refused. '@jury-clerk open intake' reopens it.">■ Intake closed</span>` : `<span class="chip g" data-tip="Intake is open: any GitHub link pasted in #${esc(s.rooms.intake)} becomes a case.">● Intake open</span>`,
     `<span class="chip" data-tip="The two Switch rooms everyone sees. Each case also gets its own room.">#${esc(s.rooms.intake)} · #${esc(s.rooms.floor)}</span>`,
+    (() => { const en = Date.parse(set.window_end||"")/1000; return set.enforce_deadline && en > nowS() ? `<span class="chip" data-tip="JURY_ENFORCE_DEADLINE is on: anything filed after this is flagged late.">Deadline in ${dur(en - nowS())}</span>` : ""; })(),
   ].join("");
   if (!cs.length) $("headline").innerHTML = `The floor<br>is <span class="o">empty</span>.`;
   else {
@@ -668,19 +680,41 @@ function renderHero(s){
   for (const h of (b.humans||[])) rows.push(`<div class="agent"><span class="d h"></span><span>@${esc(h)}</span><span>human judge</span></div>`);
   $("benchbox").innerHTML = `<span class="lbl mut">On the bench</span>` + rows.join("");
 }
+function nextUp(s){
+  const cs = s.cases, rem = (s.settings?.remind_minutes || 30) * 60, L = (c) => `#${String(c.number).padStart(3,"0")}`;
+  const waitOf = (c) => nowS() - (readyAt(c) || c.created_at);
+  const human = cs.filter(c => stage(c) === "human").sort((a, b) => waitOf(b) - waitOf(a));
+  const copy = cs.find(c => isCopy(c) && !c.verdict);
+  if (copy) return {pri:"Urgent", cls:"r", verb:"Compare a possible copy", c:copy, why:`shares history or code with ${L({number:copyOf(copy)||0})} · a human should look`};
+  const appeal = cs.find(c => (c.appeals||0) && !c.verdict);
+  if (appeal) return {pri:"Appeal", cls:"r", verb:"Re-decide an appeal", c:appeal, why:`appealed by ${(appeal.appeal_log||[]).slice(-1)[0]?.by || "the team"} · old verdict set aside`};
+  if (human.length && waitOf(human[0]) > rem) return {pri:"Overdue", cls:"r", verb:"Give a verdict", c:human[0], why:`panel done ${dur(waitOf(human[0]))} ago${human[0].assignee?` · @${human[0].assignee}`:""}${human.length>1?` · ${human.length-1} more waiting`:""}`};
+  const split = cs.find(c => (c.disagreements||[]).length && !c.verdict);
+  if (split) { const d = split.disagreements[0], k = s.rubric.criteria.find(x => x.id === d.criterion); return {pri:"Split", cls:"r", verb:"Settle a split", c:split, why:`${short(d.a)} ${d.sa} vs ${short(d.b)} ${d.sb} on ${k ? k.label : d.criterion}`}; }
+  if (human.length) return {pri:"Ready", cls:"", verb:"Give a verdict", c:human[0], why:`panel done ${dur(waitOf(human[0]))} ago${human[0].assignee?` · @${human[0].assignee}`:""}`};
+  const open = cs.filter(c => ["filed","panel"].includes(stage(c))).sort((a, b) => a.created_at - b.created_at);
+  if (open.length) { const c = open[0], owes = (c.judges||[]).filter(j => !(c.scorecards||{})[j]); return {pri:"Bench working", cls:"", verb:"Nothing for you yet", c, why:`${L(c)} waiting on ${owes.map(short).join(", ") || "the bench"} · filed ${ago(c.created_at)}`}; }
+  return {pri:"All clear", cls:"g", verb:cs.length ? "Floor's clear" : "Ready for cases", c:null, why:`paste a GitHub link in #${s.rooms.intake} to open a case`};
+}
+function pulse(s){
+  const H = 12, now = nowS(), start = now - H*3600, bins = Array(H).fill(0);
+  for (const e of events(s)) if (e.t >= start) bins[Math.min(H-1, Math.floor((e.t - start)/3600))]++;
+  const mx = Math.max(1, ...bins), W = 240, Ht = 46, bw = W/H;
+  const bars = bins.map((n, i) => `<rect x="${i*bw+1}" y="${Ht - (n/mx)*(Ht-4)}" width="${bw-2}" height="${Math.max(n?2:0, (n/mx)*(Ht-4))}" fill="${i===H-1?"var(--red)":"var(--fg)"}" ${T(`<b>${n} event${n===1?"":"s"}</b><br>${hhmm(start+i*3600)}–${hhmm(start+(i+1)*3600)}`)}/>`).join("");
+  return `<svg viewBox="0 0 ${W} ${Ht}" preserveAspectRatio="none" role="img" aria-label="Events per hour, last 12 hours"><line x1="0" x2="${W}" y1="${Ht-.5}" y2="${Ht-.5}" stroke="var(--line2)"/>${bars}</svg>`;
+}
+function renderNext(s){
+  const n = nextUp(s), all = events(s), last = all[0]?.t, total = all.filter(e => e.t >= nowS() - 43200).length;
+  $("next").innerHTML = `<div class="hd"><span class="lbl mut">Next up</span><span class="pri ${n.cls}">${esc(n.pri)}</span></div>
+    <div class="verb">${esc(n.verb)}</div>
+    ${n.c ? `<div class="what">${esc(`#${String(n.c.number).padStart(3,"0")}`)} ${nm(n.c)}</div>` : ""}
+    <div class="why">${esc(n.why)}</div>
+    ${n.c ? `<button class="go2" data-open="${n.c.number}">Open case →</button>` : ""}
+    <div class="pulse2"><div class="hd"><span class="lbl mut">Floor pulse · 12h</span><span class="lbl mut">${total} events · last <span id="lastact" data-t="${last||""}">${last ? dur(nowS()-last) : "–"}</span></span></div>${pulse(s)}<div class="ax2"><span>12h ago</span><span>6h</span><span>now</span></div></div>`;
+}
 function tickClock(){
-  const s = UI.data; if (!s || !s.settings) return;
-  const st = Date.parse(s.settings.window_start)/1000, en = Date.parse(s.settings.window_end)/1000, n = nowS();
-  let label, left;
-  if (n < st) { label = "Submissions open in"; left = st - n; }
-  else if (n < en) { label = "Submissions close in"; left = en - n; }
-  else { label = "Submissions closed"; left = 0; }
-  $("cdlabel").textContent = label;
-  const d = Math.floor(left/86400), h = Math.floor(left%86400/3600), m = Math.floor(left%3600/60), sec = Math.floor(left%60);
-  $("countdown").innerHTML = left <= 0 ? "00:00:00" : `${d?`${d}<i>d</i> `:""}${String(h).padStart(2,"0")}<i>:</i>${String(m).padStart(2,"0")}<i>:</i>${String(sec).padStart(2,"0")}`;
-  const pct = Math.max(0, Math.min(1, (n - st) / (en - st)));
-  $("windowbar").style.width = (pct*100).toFixed(2) + "%";
-  $("windowtxt").textContent = `${Math.round(pct*100)}% of the window gone · ends ${new Date(en*1000).toLocaleString([], {weekday:"short", hour:"2-digit", minute:"2-digit"})}`;
+  const s = UI.data; if (!s) return;
+  const la = $("lastact"); if (la && la.dataset.t) la.textContent = dur(nowS() - +la.dataset.t);
   const stale = UI.lastOk && Date.now() - UI.lastOk > 15000;
   $("live").classList.toggle("stale", !!stale);
   $("livetxt").textContent = s.demo ? "Demo" : (stale ? "Offline" : "Live");
@@ -939,6 +973,7 @@ function events(s){
     for (const [j, card] of Object.entries(c.scorecards||{})) if (card.at) ev.push({t:card.at, k:"score", ic:ini(j), cls:"", n:c.number, tx:`<b>${esc(short(j))}</b> scored ${L}: ${Object.entries(card.scores||{}).map(([k,v]) => `${esc(lab(k))} ${v}`).join(", ")}`, sub:esc(md(card.summary||"").slice(0,140))});
     for (const d of (c.disagreements||[])) { const t = Math.max(c.scorecards[d.a]?.at||0, c.scorecards[d.b]?.at||0); ev.push({t, k:"flag", ic:"⚔", cls:"r", n:c.number, tx:`Split on ${L} ${esc(lab(d.criterion))}: ${esc(short(d.a))} ${d.sa} vs ${esc(short(d.b))} ${d.sb}`, sub:"Clerk asked them to compare evidence in the room"}); }
     if (readyAt(c)) ev.push({t:readyAt(c), k:"verdict", ic:"✓", cls:"o", n:c.number, tx:`${L} panel complete at <b>${c.provisional!=null?c.provisional.toFixed(1):"–"}</b>`, sub:`Clerk pinged ${c.assignee?"@"+esc(c.assignee):"the human judges"} for a verdict`});
+    for (const r of (c.reopen_log||[])) ev.push({t:r.at, k:"verdict", ic:"↩", cls:"o", n:c.number, tx:`${L} reopened by <b>${esc(r.by)}</b>${r.previous?`: ${esc(r.previous.toUpperCase())} set aside`:""}`, sub:"The old verdict stays on record"});
     for (const a of (c.appeal_log||[])) ev.push({t:a.at, k:"verdict", ic:"↺", cls:"r", n:c.number, tx:`Appeal on ${L} by <b>${esc(a.by)}</b>${a.previous?`: ${esc(a.previous.toUpperCase())} set aside`:""}`, sub:esc(a.text)});
     if (c.verdict?.at) { const o = outcome(c, s.rubric.verdicts); ev.push({t:c.verdict.at, k:"verdict", ic:"⚖", cls:o==="top"?"g":(o==="out"?"r":""), n:c.number, tx:`<b>${esc(c.verdict.decision.toUpperCase())}</b> for ${L} ${esc(c.repo)}${c.final!=null?`, ${Math.round(c.final)}/100`:""}`, sub:`by ${esc(c.verdict.judge||"")}${c.verdict.note?` · “${esc(c.verdict.note)}”`:""}`}); }
     if ((c.red_flags||[]).length && (c.scorecards||{})[s.bench?.auditor||"jury-auditor"]) ev.push({t:(c.scorecards[s.bench?.auditor||"jury-auditor"].at||c.created_at)+0.5, k:"flag", ic:"!", cls:"r", n:c.number, tx:`${(c.red_flags||[]).length} red flag${c.red_flags.length===1?"":"s"} on ${L}`, sub:esc(md(c.red_flags[0]).slice(0,140))});
@@ -957,7 +992,7 @@ function renderCmds(s){
   const c = "@" + (s.bench?.clerk || "jury-clerk"), first = s.cases.find(x => stage(x)==="human") || s.cases[0], N = first ? first.number : 1, V = s.rubric.verdicts, who = (s.bench?.humans||[])[0] || "maya";
   const G = [
     [`In #${s.rooms.intake}`, [["https://github.com/owner/repo", "Paste any GitHub link. Clerk opens a case room for it."], ["appeal the Critic missed the video", "Reply to Clerk's feedback in the thread to appeal a verdict."]]],
-    ["In a case room", [[`${c} verdict ${V[0]} 88 strong use of rooms`, `Give the verdict, optionally a score and a note. Choices: ${V.join(", ")}.`], [`${c} explain`, "How this case's score was computed, judge by judge."], [`${c} summon`, "Re-ping judges who haven't filed a scorecard."], [`${c} rescan`, "Re-read the room for scorecards Clerk might have missed."], [`${c} reaudit`, "Run the Auditor again after the team pushes a fix."], [`${c} feedback`, "Preview what the participant will be sent."], ["@jury-auditor evidence", "The Auditor's full fact sheet."]]],
+    ["In a case room", [[`${c} verdict ${V[0]} 88 strong use of rooms`, `Give the verdict, optionally a score and a note. Choices: ${V.join(", ")}.`], [`${c} explain`, "How this case's score was computed, judge by judge."], [`${c} summon`, "Re-ping judges who haven't filed a scorecard."], [`${c} rescan`, "Re-read the room for scorecards Clerk might have missed."], [`${c} reaudit`, "Run the Auditor again after the team pushes a fix."], [`${c} feedback`, "Preview what the participant will be sent."], [`${c} reopen`, "Set this case's verdict aside (it stays on record) so a human can decide again."], ["@jury-auditor evidence", "The Auditor's full fact sheet."]]],
     [`On #${s.rooms.floor}`, [[`${c} leaderboard`, "The ranking, in chat."], [`${c} stats`, "First-pass times, flags, overrides, appeals."], [`${c} my queue`, "Cases assigned to you and their state."], [`${c} assign ${N} to @${who}`, "Hand a case to a specific human judge."], [`${c} calibration`, "How generous or harsh each AI judge is vs the humans."], [`${c} case ${N}`, "One case's scorecards at a glance."], [`${c} close intake`, "Stop taking new links (open intake reverses it)."], [`${c} help`, "Everything above, in chat."]]],
     ["From a terminal", [["jury submit owner/repo", "File links from a script."], ["jury import submissions.csv", "File every repo link in a CSV."], ["jury export --md results.md", "Write the results post, ranked, with reasons."], ["jury audit owner/repo", "Run the Auditor locally, no Switch needed."], ["jury doctor", "Check the server, token, bridge and judges."]]],
   ];
@@ -1025,6 +1060,7 @@ function renderDrawer(){
   for (const [j, card] of Object.entries(c.scorecards||{})) if (card.at) tl.push([card.at, "", `<b>${esc(short(j))}</b> filed: ${Object.entries(card.scores||{}).map(([k,v]) => `${esc((crit.find(x=>x.id===k)||{label:k}).label)} ${v}`).join(", ")}`]);
   for (const d of (c.disagreements||[])) tl.push([Math.max(c.scorecards[d.a]?.at||0, c.scorecards[d.b]?.at||0)+0.1, "r", `Split on ${esc((crit.find(x=>x.id===d.criterion)||{}).label||d.criterion)}: ${esc(short(d.a))} ${d.sa} vs ${esc(short(d.b))} ${d.sb}. Clerk asked them to settle it`]);
   if (readyAt(c)) tl.push([readyAt(c), "k", `Panel complete at <b>${c.provisional?.toFixed(1)}</b>. Clerk asked for a verdict`]);
+  for (const r of (c.reopen_log||[])) tl.push([r.at, "", `Reopened by <b>${esc(r.by)}</b>${r.previous?`: ${esc(r.previous.toUpperCase())} set aside`:""}`]);
   for (const a of (c.appeal_log||[])) tl.push([a.at, "r", `Appeal by <b>${esc(a.by)}</b>: “${esc(a.text)}”${a.previous?` ${esc(a.previous.toUpperCase())} set aside`:""}`]);
   if (c.verdict?.at) tl.push([c.verdict.at, o==="top"?"g":(o==="out"?"r":"k"), `<b>${esc(c.verdict.decision.toUpperCase())}</b> by ${esc(c.verdict.judge||"")}${c.verdict.note?`: “${esc(c.verdict.note)}”`:""}`]);
   tl.sort((a, b) => a[0] - b[0]);
@@ -1053,7 +1089,7 @@ function setupBuilder(c){
   $("vseg").innerHTML = V.map((v, i) => `<button data-v="${esc(v)}" class="${i===0?"vt":(i===V.length-1?"vo":"")}">${esc(v)}</button>`).join("");
   $("vscore").value = UI.b.score; $("keep").checked = UI.b.keep; $("vnote").value = "";
   const N = c.number, clerk = "@" + (s.bench?.clerk || "jury-clerk");
-  $("quick").innerHTML = [["explain", "explain"], ["summon", "summon"], ["rescan", "rescan"], ["reaudit", "reaudit"], ["feedback", "feedback"], [`case ${N}`, `case ${N}`], [`assign ${N} to @…`, `assign ${N} to @${(s.bench?.humans||[])[0]||"name"}`]].map(([l, cmd]) => `<button data-copy="${esc(clerk+" "+cmd)}">${esc(l)}</button>`).join("");
+  $("quick").innerHTML = [["explain", "explain"], ["summon", "summon"], ["rescan", "rescan"], ["reaudit", "reaudit"], ["feedback", "feedback"], ["reopen", "reopen"], [`case ${N}`, `case ${N}`], [`assign ${N} to @…`, `assign ${N} to @${(s.bench?.humans||[])[0]||"name"}`]].map(([l, cmd]) => `<button data-copy="${esc(clerk+" "+cmd)}">${esc(l)}</button>`).join("");
   syncBuilder();
 }
 function syncBuilder(){
@@ -1094,7 +1130,7 @@ function tour(i){
 
 // ── render loop ───────────────────────────────────────────────────────────
 function renderAll(s){
-  renderHero(s); renderPipe(s); renderKPIs(s); renderAlerts(s); renderTicker(s);
+  renderHero(s); renderNext(s); renderPipe(s); renderKPIs(s); renderAlerts(s); renderTicker(s);
   chartHist(s); chartCrit(s); chartScatter(s); chartGantt(s);
   renderBoard(s); renderBench(s); renderFeed(s); renderCmds(s); renderPrims(s);
   if (UI.open != null) renderDrawer();

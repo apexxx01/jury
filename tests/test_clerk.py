@@ -211,3 +211,27 @@ def test_results_markdown(clerk):
     assert md.startswith("# Results · Flip the Switch 2026")
     assert "| 1 | [o/r1](https://github.com/o/r1) | SHORTLIST | 90 |" in md
     assert "> strong (asha)" in md and "**jury-inspector**: 38 tests pass" in md
+
+
+async def test_reopen_sets_the_verdict_aside_and_keeps_it(clerk):
+    c = add(clerk, 4, status="decided", assignee="asha")
+    for j in ("jury-auditor", "jury-inspector", "jury-critic"):
+        c.scorecards[j] = {"scores": {"presentation": 7}}
+    c.verdict = {"decision": "shortlist", "score": 88, "judge": "asha"}
+    await clerk._command("R-floor", {"sender_name": "asha", "message_id": "x"}, "@jury-clerk reopen 4", None)
+    assert c.verdict is None and c.status == "scored"
+    assert c.extra["reopened"][0]["previous"]["score"] == 88
+    assert any("reopened by asha" in b for _, b in clerk.agent.posts)
+    # nothing to set aside the second time
+    await clerk._command("R4", {"sender_name": "asha"}, "@jury-clerk reopen", c)
+    assert "no verdict to set aside" in clerk.agent.posts[-1][1]
+    # an agent can't do it
+    c.verdict = {"decision": "pass"}
+    await clerk._command("R4", {"sender_name": "jury-critic"}, "@jury-clerk reopen", c)
+    assert c.verdict == {"decision": "pass"}
+
+
+async def test_reopen_intake_is_still_intake(clerk):
+    clerk.state.intake_closed = True
+    await clerk._command("R-floor", {"sender_name": "asha"}, "@jury-clerk reopen intake", None)
+    assert clerk.state.intake_closed is False

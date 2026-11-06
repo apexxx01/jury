@@ -158,6 +158,15 @@ def snapshot(state: State, rubric: scoring.Rubric, cfg: config.Config, judges_pr
         d["judges"] = c.extra.get("judges", [])
         d["assignee"] = c.extra.get("assignee")
         d["first_pass_s"] = c.extra.get("first_pass_s")
+        if d["first_pass_s"] is None and c.status != "open" and c.scorecards:
+            # cases scored before Jury recorded this: the last scorecard's time is the same thing
+            last = max((card.get("at") or 0) for card in c.scorecards.values())
+            if last > c.created_at:
+                d["first_pass_s"] = round(last - c.created_at)
+        d["reopen_log"] = [
+            {"by": r.get("by"), "at": r.get("at"), "previous": (r.get("previous") or {}).get("decision")}
+            for r in c.extra.get("reopened", [])
+        ]
         d["appeal_log"] = [
             {"by": a.get("by"), "text": a.get("text"), "at": a.get("at"), "previous": (a.get("previous") or {}).get("decision")}
             for a in c.extra.get("appeals", [])

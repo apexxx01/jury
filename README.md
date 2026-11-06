@@ -242,6 +242,7 @@ most of it Docker and chat-app setup; [`docs/RUNBOOK.md`](docs/RUNBOOK.md) walks
 | `@jury-clerk explain 7` · `calibration` | anywhere | how a score was computed · which AI judge leans generous or harsh |
 | `@jury-clerk close intake` · `open intake` | anywhere | stop or resume new filings |
 | `@jury-clerk feedback` | a case room | preview what the participant would be sent |
+| `@jury-clerk reopen` · `reopen 7` | a case room · anywhere | set a verdict aside (kept on record) so a human decides again |
 | `appeal <why>` | the submission's intake thread | the verdict is set aside and the case goes back to its judge |
 | `@jury-clerk summon` | a case room | pull in a judge that was added or re-created after the case opened |
 | `@jury-clerk rescore` / `rescan` / `reaudit` | a case room | recount, re-read the room for scorecards Clerk missed, or have the Auditor re-clone after a fix |

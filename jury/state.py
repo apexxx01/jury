@@ -88,6 +88,7 @@ class State:
     agents: dict[str, dict[str, str]] = field(default_factory=dict)
     rooms: dict[str, str] = field(default_factory=dict)  # role -> room id
     floor_doc_id: str | None = None
+    floor_doc_hash: str | None = None
     cases: dict[str, Case] = field(default_factory=dict)  # key -> case
     seen: list[str] = field(default_factory=list)  # message ids already handled
 
@@ -102,6 +103,7 @@ class State:
             agents=raw.get("agents", {}),
             rooms=raw.get("rooms", {}),
             floor_doc_id=raw.get("floor_doc_id"),
+            floor_doc_hash=raw.get("floor_doc_hash"),
             cases=cases,
             seen=raw.get("seen", [])[-2000:],
         )
@@ -112,6 +114,7 @@ class State:
             "agents": self.agents,
             "rooms": self.rooms,
             "floor_doc_id": self.floor_doc_id,
+            "floor_doc_hash": self.floor_doc_hash,
             "cases": {k: asdict(v) for k, v in self.cases.items()},
             "seen": self.seen[-2000:],
         }

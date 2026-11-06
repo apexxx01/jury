@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import re
 import time
@@ -70,7 +71,7 @@ class Clerk:
         self.on_change: list[Any] = []
         self._doc_task: asyncio.Task[None] | None = None
         self._doc_dirty = False
-        self.doc_debounce = 20.0
+        self.doc_debounce = 45.0
         self._creator_unlinked = False
 
     @property
@@ -415,7 +416,10 @@ class Clerk:
         if not missing and case.status == "open":
             case.status = "scored"
             await self._ask_for_verdict(case)
-        await self.refresh_floor()
+            # The floor's document moves when a case is ready for a verdict, not on
+            # every scorecard: Switch announces each edit in the channel. The web
+            # view stays live either way.
+            await self.refresh_floor()
         self._changed()
 
     async def _ask_for_verdict(self, case: Case) -> None:
@@ -654,9 +658,13 @@ class Clerk:
 
     async def _write_leaderboard_doc(self, floor: str) -> None:
         content = self.leaderboard_md() + "\n\nFull detail: " + (self.cfg.public_url or f"http://{self.cfg.web_host}:{self.cfg.web_port}")
+        digest = hashlib.sha256(content.encode()).hexdigest()
+        if self.state.floor_doc_id and digest == self.state.floor_doc_hash:
+            return  # nothing changed: no edit, no "updated room document" notice
         try:
             if self.state.floor_doc_id:
                 await self.agent.room_op(floor, "update_room_document", {"document_id": self.state.floor_doc_id, "content": content})
+                self.state.floor_doc_hash = digest
             else:
                 res = await self.agent.room_op(
                     floor,
@@ -669,6 +677,8 @@ class Clerk:
                     },
                 )
                 self.state.floor_doc_id = (res or {}).get("id") or (res or {}).get("document_id")
+                self.state.floor_doc_hash = digest
+            self.state.save()
         except SwitchError as e:
             if e.status == 404 and self.state.floor_doc_id:
                 self.state.floor_doc_id = None  # someone deleted it in the UI; recreate next time

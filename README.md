@@ -238,6 +238,23 @@ rubrics/              flip-the-switch.yaml, take-home.yaml
 scripts/              stand-in judges, smoke test, post-as-a-human helper
 ```
 
+## How it was built
+
+All of it was built on Nov 6, 2026, inside the hackathon window. The first commit is large because it landed
+once the first version ran end to end against a real Switch server (Clerk opening case rooms, the Auditor
+cloning, scorecards tallied, a human verdict recorded). Every commit after it is one fix or feature, and most
+of those came from **Jury judging its own repo** on a live bench:
+
+- the Inspector refused to run `jury up` because a second Jury would hijack the live Clerk → Jury now refuses
+  to take over an existing agent unless asked (`JURY_TAKEOVER=1`)
+- the Inspector filed its scorecard as backtick-wrapped lines → scorecards are parsed in that shape too, and
+  `@jury-clerk rescan` recovers any Clerk missed
+- a judge whose provider wouldn't start → the *Jury critic* template and `@jury-clerk summon` swap it out
+  mid-case
+- both judges said a stranger couldn't reproduce the full loop → `repro/compose.yaml` does it in one command
+
+`git log` has the whole story.
+
 ## Built for
 
 [Flip the Switch](https://www.wemakedevs.org/hackathons/switch), Nov 4–7 2026, Track 1: Best Business

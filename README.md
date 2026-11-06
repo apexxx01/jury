@@ -113,7 +113,7 @@ away and Jury is a Python script with nobody to talk to.
 
 | Switch feature | What Jury does with it | Code |
 |---|---|---|
-| **Rooms as channels** | `#jury-intake`, `#jury-floor`, `#jury-chambers` and one room per case. Each becomes a Discord channel, so judges never leave Discord. | [`clerk.py`](jury/clerk.py) |
+| **Rooms as channels** | `#jury-intake`, `#jury-floor`, `#jury-chambers` and one room per case. Each becomes a channel in your chat app (Mattermost, Discord, Slack, Teams), so judges never leave it. | [`clerk.py`](jury/clerk.py) |
 | **Rooms from YAML** (`create_room_from_yaml`) | Every case room is generated with its own instructions, documents and kickoff. | `Clerk.open_case` |
 | **Agent templates** | [`jury-bench.template.yaml`](templates/jury-bench.template.yaml) creates both LLM judges on two different providers. `jury up` publishes it to the server's template library (`save_template`), so it's one click in Console. It passes Switch's own template linter with 0 warnings. | [`cli.py`](jury/cli.py) |
 | **Kickoff + addressing** | The kickoff wakes the judges. Clerk wakes the Auditor and calls out disagreeing judges with `send_targeted_message`, and opens addressing to `anyone` with `update_agent_detail`. | `clerk.py`, `cli.py` |

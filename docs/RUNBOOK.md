@@ -1,13 +1,13 @@
 # Runbook: Jury on a Mac, from zero to demo
 
-About 45 minutes the first time, most of it waiting on Docker and Discord settings.
+About 45 minutes the first time, most of it waiting on Docker and chat-app settings. With the Mattermost that Console bundles you can skip the Discord section entirely.
 
 ## 0. Before you start
 
 - **Docker Desktop**, installed and running (Switch Console runs its local server in it)
 - **uv** and **git**: `brew install uv git`
-- **Claude Code** signed in (`claude` works in a terminal) and **Codex** signed in (`codex` works)
-- A **Discord server you own**. Make a fresh one called "Jury" for the demo so it looks clean.
+- **Claude Code** signed in (`claude` works in a terminal). Codex or OpenCode for a second provider is optional; both judges can run on Claude Code
+- A chat app: the Mattermost that Console bundles works with no setup, or a **Discord server you own** (make a fresh one called "Jury" so the demo looks clean)
 
 ## 1. Switch Console and its local server
 
@@ -19,7 +19,7 @@ About 45 minutes the first time, most of it waiting on Docker and Discord settin
 Check: `curl -s localhost:8000/health` should print `{"status":"ok"}`. If Console picked another port, Jury
 finds it anyway.
 
-## 2. Connect Discord (about 10 minutes)
+## 2. Connect Discord (optional, about 10 minutes; skip it for Mattermost)
 
 Full guide: https://docs.switchagents.ai/flintai/switch/deploy/messaging-apps/discord
 

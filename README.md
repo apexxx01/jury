@@ -24,7 +24,7 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Sw
 
 [▶ Demo video](DEMO_VIDEO_URL) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
 
-<img src="docs/img/leaderboard.png" alt="The Jury leaderboard: cases ranked by score with per-criterion bars, red flags and verdicts" width="820">
+<img src="docs/img/leaderboard.png" alt="The Jury judging floor: a live ticker, floor totals, the rubric strip, each case with block meters, red flags and its verdict stamp, and a docket of cases waiting on a human, copy alerts and judge lean" width="820">
 
 </div>
 

@@ -5,168 +5,254 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Jury · Judging Floor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f2ea; --panel:#fffdf8; --ink:#1d1a16; --muted:#6f675c; --line:#e4dccd;
-  --brass:#a86a12; --brass-soft:#f3e3c4; --good:#2f7d4f; --good-soft:#dcefe2;
-  --warn:#9a6a00; --warn-soft:#f6ecd0; --bad:#a83a32; --bad-soft:#f5dcd8; --track:#ece5d8;
+  --paper:#ffffff; --ink:#000000; --red:#ff2a1a; --green:#00c46a; --dim:#6b6b6b; --void:#e9e9e9;
+  --rule:4px; --gap:clamp(14px,2vw,24px);
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0f0e0c; --panel:#17150f; --ink:#f1ebdf; --muted:#a39a8a; --line:#2b2720;
-  --brass:#e0a63e; --brass-soft:#3a2c12; --good:#5ec48a; --good-soft:#15301f;
-  --warn:#e6b54a; --warn-soft:#352a10; --bad:#ee7a6f; --bad-soft:#3a1916; --track:#26221b;
-}}
-:root[data-theme="dark"]{
-  --bg:#0f0e0c; --panel:#17150f; --ink:#f1ebdf; --muted:#a39a8a; --line:#2b2720;
-  --brass:#e0a63e; --brass-soft:#3a2c12; --good:#5ec48a; --good-soft:#15301f;
-  --warn:#e6b54a; --warn-soft:#352a10; --bad:#ee7a6f; --bad-soft:#3a1916; --track:#26221b;
-}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--paper:#000000;--ink:#ffffff;--dim:#9a9a9a;--void:#1f1f1f}}
+:root[data-theme="dark"]{--paper:#000000;--ink:#ffffff;--dim:#9a9a9a;--void:#1f1f1f}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
-.wrap{max-width:1080px;margin:0 auto;padding:28px 16px 64px}
-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:20px}
-.eyebrow{font:500 12px/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
-h1{font:700 clamp(30px,5vw,44px)/1.05 Fraunces,Georgia,serif;margin:8px 0 6px;letter-spacing:-.01em}
-.sub{color:var(--muted);margin:0}
-.stats{display:flex;gap:10px;flex-wrap:wrap}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;min-width:92px}
-.stat b{display:block;font:700 22px/1.1 Fraunces,serif}
-.stat span{font-size:12px;color:var(--muted);text-transform:capitalize}
-.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:18px 0 8px;color:var(--muted);font-size:13px}
-.legend i{font-style:normal;color:var(--ink);font-weight:600}
-.cases{display:grid;gap:12px;margin-top:12px}
-.case{display:grid;grid-template-columns:56px 1fr auto;gap:16px;align-items:start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.rank{font:700 28px/1 Fraunces,serif;color:var(--muted);text-align:center;padding-top:4px}
-.case.top .rank{color:var(--brass)}
-.title{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px}
-.title a{color:var(--ink);font-weight:600;font-size:16px;text-decoration:none;word-break:break-all}
-.title a:hover{text-decoration:underline}
-.num{font:500 12px 'JetBrains Mono',monospace;color:var(--muted)}
-.meta{color:var(--muted);font-size:13px;margin:2px 0 10px}
-.crit{display:grid;grid-template-columns:minmax(120px,170px) 1fr 40px;gap:10px;align-items:center;font-size:13px;margin:4px 0}
-.track{height:8px;border-radius:99px;background:var(--track);overflow:hidden}
-.fill{height:100%;border-radius:99px;background:var(--brass);transition:width .6s ease}
-.crit .v{font:500 12px 'JetBrains Mono',monospace;text-align:right}
-.appeal{color:var(--warn);font-weight:600}
-details{margin-top:12px;font-size:14px;color:var(--muted)}
-details summary{cursor:pointer;color:var(--ink);font-weight:500;width:max-content}
-details p{margin:8px 0 0;line-height:1.45}
-details b{color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:12px;margin-right:6px}
-.flags{margin:10px 0 0;padding:0;list-style:none;font-size:13px}
-.flags li{color:var(--bad);margin:2px 0}
-.flags li::before{content:"⚑ ";}
-.judges{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{font:500 11px 'JetBrains Mono',monospace;border:1px solid var(--line);border-radius:99px;padding:3px 8px;color:var(--muted)}
-.chip.done{border-color:var(--good);color:var(--good);background:var(--good-soft)}
-.side{text-align:right;min-width:110px}
-.score{font:700 34px/1 Fraunces,serif}
-.score small{font:500 13px Inter,sans-serif;color:var(--muted)}
-.pill{display:inline-block;margin-top:8px;font:600 11px/1 Inter,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:6px 9px;border-radius:6px}
-.p-open{background:var(--track);color:var(--muted)}
-.p-scored{background:var(--warn-soft);color:var(--warn)}
-.p-good{background:var(--good-soft);color:var(--good)}
-.p-mid{background:var(--warn-soft);color:var(--warn)}
-.p-bad{background:var(--bad-soft);color:var(--bad)}
-.note{font-size:12px;color:var(--muted);margin-top:6px;max-width:220px;margin-left:auto}
-.empty{border:1px dashed var(--line);border-radius:14px;padding:40px 20px;text-align:center;color:var(--muted)}
-.empty code{font-family:'JetBrains Mono',monospace;color:var(--ink)}
-footer{margin-top:28px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--good);margin-right:6px;animation:pulse 2s infinite}
-@keyframes pulse{50%{opacity:.3}}
+html{background:var(--paper)}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Archivo,"Arial Narrow",Arial,sans-serif;font-variant-numeric:tabular-nums;font-size:16px;line-height:1.4;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--red);outline-offset:3px}
+.cond{font-stretch:62%}
+.exp{font-stretch:125%}
+
+/* ticker: the one moving thing */
+.ticker{background:var(--ink);color:var(--paper);overflow:hidden;white-space:nowrap;border-bottom:var(--rule) solid var(--ink);font-weight:800;font-stretch:75%;font-size:15px;letter-spacing:.02em}
+.ticker .track{display:inline-block;padding:9px 0;animation:run 60s linear infinite}
+.ticker span{padding:0 22px}
+.ticker .r{color:var(--red)} .ticker .g{color:var(--green)}
+@keyframes run{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion: reduce){.ticker .track{animation:none}}
+
+/* masthead */
+header{display:grid;grid-template-columns:1fr auto;border-bottom:var(--rule) solid var(--ink)}
+.title{padding:var(--gap) var(--gap) 10px;min-width:0}
+.title .who{font-weight:700;font-size:15px}
+.title .who b{font-weight:900}
+h1{margin:6px 0 0;font-weight:900;font-stretch:62%;font-size:clamp(56px,11vw,168px);line-height:.82;letter-spacing:-.02em;word-spacing:.12em;text-transform:uppercase;word-break:break-word}
+.motto{font-weight:600;font-size:clamp(15px,1.6vw,19px);margin-top:12px;max-width:60ch}
+.live{border-left:var(--rule) solid var(--ink);padding:var(--gap);display:flex;flex-direction:column;justify-content:space-between;min-width:200px;font-weight:700}
+.live .dot{display:inline-block;width:12px;height:12px;background:var(--green);margin-right:8px;vertical-align:-1px}
+.live .stale .dot{background:var(--red)}
+.live time{display:block;font-weight:900;font-stretch:62%;font-size:44px;line-height:1}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:var(--rule) solid var(--ink)}
+.stat{padding:14px var(--gap) 12px;border-right:var(--rule) solid var(--ink);min-width:0}
+.stat:last-child{border-right:0}
+.stat .n{font-weight:900;font-stretch:62%;font-size:clamp(44px,6vw,86px);line-height:.85}
+.stat .l{font-weight:700;font-size:14px;margin-top:6px}
+.stat.red .n{color:var(--red)} .stat.green .n{color:var(--green)}
+
+/* rubric strip */
+.rubric{display:flex;border-bottom:var(--rule) solid var(--ink);font-weight:800}
+.rubric div{padding:8px 10px;border-right:2px solid var(--paper);background:var(--ink);color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.rubric div b{font-weight:900;font-stretch:62%;font-size:22px;margin-right:6px}
+
+/* body grid */
+main{display:grid;grid-template-columns:minmax(0,1fr) 360px}
+.ledger{border-right:var(--rule) solid var(--ink);min-width:0}
+aside{min-width:0}
+
+/* a case row */
+.case{display:grid;grid-template-columns:96px minmax(0,1fr) 190px;border-bottom:var(--rule) solid var(--ink)}
+.rank{border-right:var(--rule) solid var(--ink);font-weight:900;font-stretch:62%;font-size:84px;line-height:1;padding:10px 0 0;text-align:center}
+.case.out .rank{color:var(--red)}
+.cbody{padding:14px var(--gap) 16px;min-width:0}
+.repo{font-weight:900;font-stretch:118%;font-size:clamp(20px,2.4vw,30px);line-height:1.05;text-decoration:none;word-break:break-all}
+.repo:hover{text-decoration:underline;text-decoration-thickness:3px}
+.meta{font-weight:600;font-size:14px;color:var(--dim);margin-top:4px}
+.meta b{color:var(--ink)}
+.meters{display:grid;grid-template-columns:auto 1fr auto;gap:5px 14px;align-items:center;margin-top:14px;max-width:640px}
+.meters .k{font-weight:700;font-size:14px}
+.cells{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;height:16px}
+.cells i{background:var(--void)}
+.cells i.on{background:var(--ink)}
+.cells.none i{background:transparent;border:2px dashed var(--void)}
+.meters .v{font-weight:900;font-stretch:62%;font-size:22px;min-width:3ch;text-align:right}
+.flags{margin:14px 0 0;padding:0;list-style:none}
+.flags li{font-weight:700;font-size:14px;color:var(--red);padding:6px 0 6px 26px;position:relative;border-top:2px solid var(--red)}
+.flags li::before{content:"⚑";position:absolute;left:4px;top:5px}
+.bench{display:flex;flex-wrap:wrap;gap:0;margin-top:14px;border:2px solid var(--ink);width:max-content;max-width:100%}
+.bench span{font-weight:800;font-size:13px;padding:5px 10px;border-right:2px solid var(--ink)}
+.bench span:last-child{border-right:0}
+.bench span.done{background:var(--ink);color:var(--paper)}
+.bench span.done::before{content:"✓ "}
+details{margin-top:12px}
+summary{cursor:pointer;font-weight:900;font-size:14px;list-style:none;display:inline-block;border-bottom:3px solid var(--ink)}
+summary::-webkit-details-marker{display:none}
+details[open] summary{border-color:var(--red)}
+details p{margin:8px 0 0;font-size:15px;max-width:70ch}
+details p b{font-weight:900}
+.right{border-left:var(--rule) solid var(--ink);display:flex;flex-direction:column}
+.score{padding:12px 14px 8px;font-weight:900;font-stretch:62%;font-size:96px;line-height:.85;flex:1}
+.score small{font-size:26px;font-stretch:100%;font-weight:700;margin-left:2px}
+.score.pending{color:var(--void);-webkit-text-stroke:2px var(--ink)}
+.score .prov{display:block;font-size:13px;font-stretch:100%;font-weight:700;color:var(--dim);margin-top:8px;line-height:1.2}
+.stamp{font-weight:900;font-stretch:110%;font-size:17px;padding:10px 14px;border-top:var(--rule) solid var(--ink);text-align:center}
+.stamp.top{background:var(--green);color:#000}
+.stamp.out{background:var(--red);color:#fff}
+.stamp.mid{background:var(--ink);color:var(--paper)}
+.stamp.wait{background:var(--paper);color:var(--ink)}
+.stamp.work{background:repeating-linear-gradient(135deg,var(--ink) 0 8px,var(--paper) 8px 16px);color:var(--ink)}
+.stamp.work em{display:inline-block;background:var(--paper);padding:4px 8px;font-style:normal;line-height:1.15;border:2px solid var(--ink)}
+.note{padding:10px 14px;font-weight:600;font-size:13px;border-top:2px solid var(--ink)}
+
+/* docket */
+.box{border-bottom:var(--rule) solid var(--ink);padding:14px var(--gap) 16px}
+.box h2{margin:0 0 10px;font-weight:900;font-stretch:62%;font-size:40px;line-height:.9;text-transform:uppercase}
+.box .hint{font-size:13px;font-weight:600;color:var(--dim);margin:-4px 0 10px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:2px solid var(--ink);font-weight:700;font-size:14px}
+.row span:last-child{text-align:right;flex:none}
+.row.r{color:var(--red);border-color:var(--red)}
+.cal{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-weight:700;font-size:13px}
+.lean{position:relative;height:16px;background:var(--void)}
+.lean::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.lean i{position:absolute;top:0;bottom:0}
+.empty{font-weight:700;font-size:15px}
+.empty code{font-weight:900;border-bottom:3px solid var(--ink)}
+.void{padding:60px var(--gap);font-weight:900;font-stretch:62%;font-size:clamp(40px,7vw,90px);line-height:.9}
+.void small{display:block;font-stretch:100%;font-size:17px;font-weight:700;margin-top:16px}
+footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px var(--gap);font-weight:700;font-size:13px;border-top:var(--rule) solid var(--ink)}
+
+@media (max-width:1100px){
+  main{grid-template-columns:1fr}
+  .ledger{border-right:0}
+  aside{border-top:var(--rule) solid var(--ink)}
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .stat:nth-child(3){border-right:0}
+  .stat:nth-child(-n+3){border-bottom:var(--rule) solid var(--ink)}
+}
 @media (max-width:640px){
-  .case{grid-template-columns:1fr;gap:8px}
-  .rank{text-align:left}
-  .side{text-align:left}
-  .note{margin-left:0}
-  .crit{grid-template-columns:110px 1fr 34px}
+  header{grid-template-columns:1fr}
+  .live{border-left:0;border-top:var(--rule) solid var(--ink);flex-direction:row;align-items:center;gap:16px}
+  .case{grid-template-columns:56px minmax(0,1fr)}
+  .rank{font-size:52px}
+  .right{grid-column:1 / -1;border-left:0;border-top:var(--rule) solid var(--ink);flex-direction:row;align-items:stretch}
+  .score{font-size:64px;flex:none;padding-right:20px}
+  .stamp{border-top:0;border-left:var(--rule) solid var(--ink);flex:1;display:flex;align-items:center;justify-content:center}
+  .note{display:none}
+  .rubric{flex-wrap:wrap}
+  .rubric div{flex:1 1 45% !important;white-space:normal}
+  .live time{font-size:32px;white-space:nowrap}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat{border-bottom:var(--rule) solid var(--ink)}
+  .stat:nth-child(odd){border-right:var(--rule) solid var(--ink)}
+  .stat:nth-child(even){border-right:0}
 }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <div class="eyebrow">Jury · judging floor</div>
-      <h1 id="rubric">Leaderboard</h1>
-      <p class="sub">Every submission gets a room. Agents gather evidence, a human decides.</p>
-    </div>
-    <div class="stats" id="stats"></div>
-  </header>
-  <div class="legend" id="legend"></div>
-  <div class="cases" id="cases"></div>
-  <footer><span class="live" id="updated">connecting…</span><span>Powered by Switch rooms · Clerk · Auditor · Inspector · Critic</span></footer>
-</div>
+<div class="ticker" aria-hidden="true"><div class="track" id="ticker"></div></div>
+<header>
+  <div class="title">
+    <div class="who"><b>Jury</b>, the judging floor for</div>
+    <h1 id="event">Loading the floor</h1>
+    <div class="motto">Every submission gets a room. AI judges gather the evidence and argue it out. A human gives every verdict.</div>
+  </div>
+  <div class="live" id="live"><div><span class="dot"></span>Live</div><time id="clock">--:--</time><div id="updated">waiting for the first update</div></div>
+</header>
+<section class="stats" id="stats" aria-label="Floor totals"></section>
+<div class="rubric" id="rubric" aria-label="Rubric weights"></div>
+<main>
+  <section class="ledger" id="cases" aria-label="Cases ranked"></section>
+  <aside id="docket" aria-label="Docket"></aside>
+</main>
+<footer><span>Jury on Switch. Clerk opens the rooms, the Auditor checks facts, the Inspector runs the code, the Critic weighs the idea.</span><span id="foot"></span></footer>
 <script>
 const $ = (id) => document.getElementById(id);
+const md = (s) => String(s ?? "").replace(/\*\*|`/g, "");
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function pillFor(c, verdicts){
-  if (c.verdict){
-    const i = verdicts.indexOf(c.verdict.decision);
-    const cls = i === 0 ? "p-good" : (i === verdicts.length - 1 ? "p-bad" : "p-mid");
-    return `<span class="pill ${cls}">${esc(c.verdict.decision)}</span>`;
-  }
-  if (c.status === "scored") return `<span class="pill p-scored">awaiting verdict</span>`;
-  return `<span class="pill p-open">${c.complete ? "being judged" : "panel incomplete"}</span>`;
+const fmtT = (t) => t == null ? "–" : (t >= 3600 ? `${Math.floor(t/3600)}h ${Math.floor(t%3600/60)}m` : t >= 60 ? `${Math.floor(t/60)}m ${String(t%60).padStart(2,"0")}s` : `${t}s`);
+const OPEN = new Set();
+document.addEventListener("toggle", (e) => { const d = e.target; if (d instanceof HTMLDetailsElement && d.dataset.case) d.open ? OPEN.add(d.dataset.case) : OPEN.delete(d.dataset.case); }, true);
+let last = 0;
+
+function means(c){ const s={}; for (const card of Object.values(c.scorecards||{})) for (const [k,v] of Object.entries(card.scores||{})) (s[k] ||= []).push(v); const o={}; for (const [k,v] of Object.entries(s)) o[k]=v.reduce((a,b)=>a+b,0)/v.length; return o; }
+function ownScore(card, crit){ let w=0,t=0; for (const c of crit){ const v=(card.scores||{})[c.id]; if (v!=null){ w+=c.weight; t+=c.weight*v/10; } } return w ? t*100/w : null; }
+function cells(v){ if (v==null) return `<div class="cells none">${"<i></i>".repeat(10)}</div>`; const n=Math.round(v); return `<div class="cells">${Array.from({length:10},(_,i)=>`<i class="${i<n?"on":""}"></i>`).join("")}</div>`; }
+function stamp(c, verdicts){
+  if (c.verdict){ const i=verdicts.indexOf(c.verdict.decision); const cls = i===0?"top":(i===verdicts.length-1?"out":"mid"); return `<div class="stamp ${cls}">${esc(c.verdict.decision.toUpperCase())}</div>`; }
+  if (c.status==="scored") return `<div class="stamp wait">Needs a human</div>`;
+  return `<div class="stamp work"><em>${c.complete?"Judges at work":"Panel incomplete"}</em></div>`;
 }
-function means(c){
-  const sums = {};
-  for (const card of Object.values(c.scorecards || {})) for (const [k, v] of Object.entries(card.scores || {})) (sums[k] ||= []).push(v);
-  const out = {}; for (const [k, v] of Object.entries(sums)) out[k] = v.reduce((a, b) => a + b, 0) / v.length; return out;
-}
+
 function render(s){
-  $("rubric").textContent = s.rubric.name;
-  const cs = s.cases, decided = cs.filter(c => c.verdict).length;
-  const top = cs.filter(c => c.verdict && c.verdict.decision === s.rubric.verdicts[0]).length;
-  const passes = cs.map(c => c.first_pass_s).filter(v => v != null).sort((a, b) => a - b);
-  const med = passes.length ? passes[Math.floor(passes.length / 2)] : null;
-  const fmt = (t) => t == null ? "–" : (t >= 60 ? `${Math.floor(t / 60)}m ${String(t % 60).padStart(2, "0")}s` : `${t}s`);
-  $("stats").innerHTML = [["Cases", cs.length], ["Decided", decided], [s.rubric.verdicts[0], top], ["Median first pass", fmt(med)]]
-    .map(([k, v]) => `<div class="stat"><b>${v}</b><span>${esc(k)}</span></div>`).join("");
-  $("legend").innerHTML = s.rubric.criteria.map(c => `<span><i>${c.weight}%</i> ${esc(c.label)}</span>`).join("");
+  const crit = s.rubric.criteria, V = s.rubric.verdicts, cs = s.cases;
+  $("event").textContent = s.rubric.name;
+  const decided = cs.filter(c=>c.verdict), top = decided.filter(c=>c.verdict.decision===V[0]).length;
+  const waiting = cs.filter(c=>!c.verdict && c.status==="scored");
+  const flagged = cs.filter(c=>(c.red_flags||[]).length);
+  const copies = cs.filter(c=>(c.red_flags||[]).some(f=>f.startsWith("Possible copy")));
+  const passes = cs.map(c=>c.first_pass_s).filter(v=>v!=null).sort((a,b)=>a-b);
+  const med = passes.length ? passes[Math.floor(passes.length/2)] : null;
+  const S = [[cs.length,"Cases filed",""],[decided.length,"Decided by a human",""],[top,V[0]==="shortlist"?"Shortlisted":`Verdict: ${V[0]}`,"green"],[waiting.length,"Waiting on a human",waiting.length?"red":""],[flagged.length,`Flagged${copies.length?`, ${copies.length} possible cop${copies.length>1?"ies":"y"}`:""}`,flagged.length?"red":""],[fmtT(med),"Median first pass",""]];
+  $("stats").innerHTML = S.map(([n,l,c])=>`<div class="stat ${c}"><div class="n">${n}</div><div class="l">${esc(l)}</div></div>`).join("");
+  $("rubric").innerHTML = crit.map(c=>`<div style="flex:${c.weight}" title="${esc(c.label)}, scored by ${esc(c.judges.join(", "))}"><b>${c.weight}%</b>${esc(c.label)}</div>`).join("");
+
+  // ticker
+  const ev = [];
+  for (const c of cs){
+    if (c.verdict) ev.push([c.verdict.decision===V[0]?"g":(c.verdict.decision===V[V.length-1]?"r":""), `${c.label} ${c.owner}/${c.repo}: ${c.verdict.decision.toUpperCase()}${c.final!=null?` ${Math.round(c.final)}`:""}`]);
+    else if (c.status==="scored") ev.push(["", `${c.label} ${c.owner}/${c.repo} is waiting on a human verdict`]);
+    for (const f of (c.red_flags||[]).slice(0,1)) ev.push(["r", `${c.label}: ${md(f)}`]);
+  }
+  if (!ev.length) ev.push(["", "Paste a GitHub link in #" + s.rooms.intake + " to open the first case"]);
+  const line = ev.map(([k,t])=>`<span class="${k}">■ ${esc(t)}</span>`).join("");
+  $("ticker").innerHTML = line + line;
+
+  // ledger
   if (!cs.length){
-    $("cases").innerHTML = `<div class="empty">The floor is empty. Paste a GitHub link in <code>#${esc(s.rooms.intake)}</code> to open the first case.</div>`;
+    $("cases").innerHTML = `<div class="void">The floor is empty.<small>Paste a GitHub link in #${esc(s.rooms.intake)} and Clerk opens the first case room.</small></div>`;
   } else {
-    $("cases").innerHTML = cs.map(c => {
-      const m = means(c);
-      const crit = s.rubric.criteria.map(k => {
-        const v = m[k.id];
-        return `<div class="crit"><span>${esc(k.label)}</span><div class="track"><div class="fill" style="width:${v == null ? 0 : v * 10}%"></div></div><span class="v">${v == null ? "–" : v.toFixed(1)}</span></div>`;
-      }).join("");
-      const flags = (c.red_flags || []).slice(0, 4).map(f => `<li>${esc(f)}</li>`).join("");
-      const notes = Object.entries(c.scorecards || {}).map(([j, card]) => {
-        const text = card.summary || Object.values(card.notes || {}).join("; ");
-        return text ? `<p><b>${esc(j)}</b> ${esc(text)}</p>` : "";
-      }).join("");
-      const judges = (c.judges || []).map(j => `<span class="chip ${c.scorecards && c.scorecards[j] ? "done" : ""}">${esc(j)}</span>`).join("");
-      const score = c.final == null ? "–" : (+c.final).toFixed(0);
-      const note = c.verdict && c.verdict.note ? `<div class="note">“${esc(c.verdict.note)}” · ${esc(c.verdict.judge)}</div>` : "";
-      return `<article class="case ${c.rank <= 3 && c.final != null ? "top" : ""}">
+    $("cases").innerHTML = cs.map(c=>{
+      const m = means(c), out = c.verdict && c.verdict.decision===V[V.length-1];
+      const meters = crit.map(k=>`<span class="k">${esc(k.label)}</span>${cells(m[k.id])}<span class="v">${m[k.id]==null?"–":m[k.id].toFixed(1)}</span>`).join("");
+      const flags = (c.red_flags||[]).slice(0,4).map(f=>`<li>${esc(md(f))}</li>`).join("");
+      const bench = (c.judges||[]).map(j=>`<span class="${c.scorecards&&c.scorecards[j]?"done":""}">${esc(j.replace("jury-",""))}</span>`).join("");
+      const notes = Object.entries(c.scorecards||{}).map(([j,card])=>{ const t = card.summary || Object.values(card.notes||{}).join("; "); return t?`<p><b>${esc(j.replace("jury-",""))}.</b> ${esc(t)}</p>`:""; }).join("");
+      const meta = [`filed by <b>${esc(c.submitter)}</b>`, c.assignee?`judge <b>@${esc(c.assignee)}</b>`:"", c.room_name?`room <b>#${esc(c.room_name)}</b>`:"", c.first_pass_s!=null?`first pass <b>${fmtT(c.first_pass_s)}</b>`:"", c.appeals?`<b style="color:var(--red)">appealed${c.appeals>1?" ×"+c.appeals:""}</b>`:""].filter(Boolean).join(", ");
+      const final = c.final==null ? `<div class="score pending" aria-label="No score yet">??<small style="color:var(--dim);-webkit-text-stroke:0">/100</small></div>` : `<div class="score">${Math.round(c.final)}<small>/100</small>${c.verdict&&c.verdict.score!=null&&c.provisional!=null&&Math.abs(c.verdict.score-c.provisional)>=0.5?`<span class="prov">Panel said ${Math.round(c.provisional)}</span>`:""}</div>`;
+      return `<article class="case${out?" out":""}">
         <div class="rank">${c.rank}</div>
-        <div>
-          <div class="title"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.owner)}/${esc(c.repo)}</a><span class="num">${esc(c.label)}${c.room_name ? " · #" + esc(c.room_name) : ""}</span></div>
-          <div class="meta">filed by ${esc(c.submitter)}${c.assignee ? ` · with @${esc(c.assignee)}` : ""}${c.first_pass_s != null ? ` · first pass ${fmt(c.first_pass_s)}` : ""}${c.appeals ? ` · <span class="appeal">appealed${c.appeals > 1 ? " ×" + c.appeals : ""}</span>` : ""}</div>
-          ${crit}
-          ${flags ? `<ul class="flags">${flags}</ul>` : ""}
-          <div class="judges">${judges}</div>
-          ${notes ? `<details data-case="${c.number}" ${OPEN.has(String(c.number)) ? "open" : ""}><summary>Judges' notes</summary>${notes}</details>` : ""}
+        <div class="cbody">
+          <a class="repo" href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.owner)}/${esc(c.repo)}</a>
+          <div class="meta">${esc(c.label)}, ${meta}</div>
+          <div class="meters">${meters}</div>
+          ${flags?`<ul class="flags">${flags}</ul>`:""}
+          <div class="bench" aria-label="Judges on this case">${bench}</div>
+          ${notes?`<details data-case="${c.number}" ${OPEN.has(String(c.number))?"open":""}><summary>Why these scores</summary>${notes}</details>`:""}
         </div>
-        <div class="side"><div class="score">${score}<small>/100</small></div>${pillFor(c, s.rubric.verdicts)}${note}</div>
+        <div class="right">${final}${stamp(c,V)}${c.verdict&&c.verdict.note?`<div class="note">“${esc(c.verdict.note)}” ${esc(c.verdict.judge||"")}</div>`:""}</div>
       </article>`;
     }).join("");
   }
-  $("updated").textContent = "live · updated " + new Date(s.generated_at * 1000).toLocaleTimeString();
+
+  // docket
+  const box = (title, hint, inner) => `<div class="box"><h2>${title}</h2>${hint?`<div class="hint">${hint}</div>`:""}${inner}</div>`;
+  const wait = waiting.length ? waiting.map(c=>`<div class="row"><span>${esc(c.label)} ${esc(c.repo)}</span><span>${c.assignee?"@"+esc(c.assignee):"unassigned"}</span></div>`).join("") : `<div class="empty">Nothing is waiting. Every finished panel has a verdict.</div>`;
+  const cp = copies.length ? copies.map(c=>`<div class="row r"><span>${esc(c.label)} ${esc(c.owner)}/${esc(c.repo)}</span><span>compare</span></div>`).join("") : `<div class="empty">No shared history or shared code between submissions.</div>`;
+  const diffs = {};
+  for (const c of cs){ const h = c.verdict && c.verdict.score; if (h==null) continue; for (const [j,card] of Object.entries(c.scorecards||{})){ const o = ownScore(card, crit); if (o!=null) (diffs[j] ||= []).push(o-h); } }
+  const cal = Object.keys(diffs).length ? `<div class="cal">${Object.entries(diffs).map(([j,d])=>{ const mu=d.reduce((a,b)=>a+b,0)/d.length; const w=Math.min(50,Math.abs(mu)); const ok=Math.abs(mu)<3; const col=ok?"var(--green)":"var(--red)"; const pos = mu>=0?`left:50%;width:${w}%`:`right:50%;width:${w}%`; return `<span>${esc(j.replace("jury-",""))}</span><div class="lean"><i style="${pos};background:${col}"></i></div><span style="color:${col}">${mu>=0?"+":""}${mu.toFixed(1)}</span>`; }).join("")}</div>` : `<div class="empty">Shows once humans give scored verdicts: <code>verdict shortlist 88</code></div>`;
+  $("docket").innerHTML =
+    box("Waiting on you", "Finished panels with no human verdict yet.", wait) +
+    box("Copy alerts", "Shared git history or shared code with another case.", cp) +
+    box("Judge lean", "Each AI judge's own score minus the human's final score. Right of the line is too generous.", cal) +
+    box("Commands", "", ["verdict shortlist 88 note","explain 7","my queue","calibration","close intake"].map(t=>`<div class="row"><span>@jury-clerk ${esc(t)}</span><span></span></div>`).join(""));
+
+  last = s.generated_at*1000;
+  $("updated").textContent = "updated " + new Date(last).toLocaleTimeString();
+  $("foot").textContent = `${cs.length} case${cs.length===1?"":"s"} on the floor`;
 }
-const OPEN = new Set();
-document.addEventListener("toggle", (e) => {
-  const d = e.target; if (!(d instanceof HTMLDetailsElement) || !d.dataset.case) return;
-  d.open ? OPEN.add(d.dataset.case) : OPEN.delete(d.dataset.case);
-}, true);
-async function tick(){
-  try { const r = await fetch("/api/state", {cache: "no-store"}); render(await r.json()); }
-  catch (e) { $("updated").textContent = "reconnecting…"; }
-}
-tick(); setInterval(tick, 3000);
+function clock(){ $("clock").textContent = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}); $("live").classList.toggle("stale", last && Date.now()-last > 15000); }
+async function tick(){ try { const r = await fetch("/api/state",{cache:"no-store"}); render(await r.json()); } catch(e){ $("updated").textContent = "can't reach Jury. Is jury up running?"; } clock(); }
+tick(); setInterval(tick, 3000); setInterval(clock, 1000);
 </script>
 </body>
 </html>

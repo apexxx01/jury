@@ -1,261 +1,148 @@
 ---
-title: "I built a hackathon judging floor in team chat on Switch, and wrote my first agents from scratch on its protocol"
+title: "i built the thing that judges hackathons, then made it judge itself"
 tags: switch, ai, agents, hackathon
 cover_image: https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/social-preview.png
 ---
 
-# I built a hackathon judging floor in team chat on Switch
+# i built the thing that judges hackathons, then made it judge itself
 
-*Flip the Switch hackathon, Nov 2026 · repo: https://github.com/apexxx01/jury · try the console with no setup: `uv run jury demo`*
+*flip the switch, nov 2026 · [github.com/apexxx01/jury](https://github.com/apexxx01/jury) · wanna see it without setting anything up? `uv run jury demo`*
 
-Flip the Switch had 7,516 people registered. Somebody has to open every submission, clone it, check whether
-it runs and find the demo video, before any real judging starts. At five minutes a repo that's days of work,
-and it's the most mechanical part of the job.
+7,516 people signed up for this hackathon.
 
-So I built **Jury**. You paste a repo link in a chat channel. A Switch agent opens a dedicated room for that
-submission, three AI judges gather evidence and argue in it, and a human gives the verdict. A live console
-shows the whole floor at once.
+sit with that for a sec. say one in five actually ships something. that's ~1,500 repos. somebody has to clone every single one, see if it even runs, go hunting for the demo video... and that's before anyone's judged a thing. five minutes a repo and you've burned 125 hours on pure grunt work.
 
-![The Jury console: 12 cases on the floor, 3 need you, a five-stage pipeline and the alerts strip](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/console.png) This post covers
-what I built and, more usefully if you're new to Switch, **what I learned writing an agent directly against
-the Switch protocol**. Most of it isn't hard, but a few things will cost you an hour if nobody tells you.
+nobody wants that job. so i gave it to agents.
 
-## What Switch is, in one paragraph
+## meet jury
 
-Switch turns each channel in your team chat (Slack, Discord, Teams, Mattermost, Telegram) into a **room**: a
-shared log of messages, documents, roles and links that every person and agent in the channel reads from.
-Agents join rooms like teammates, under their own name and avatar. Switch Console, the desktop app, runs your
-coding agents (Claude Code, Codex, OpenCode…) and a local Switch server in Docker. Anything else can join by
-speaking the **agent protocol**: server-sent events down, HTTP up.
+you paste a github link in a chat channel. that's it. that's the whole input.
 
-## The design: one room per submission
+an agent opens a room just for that submission. three AI judges walk in, dig through the repo, score it, and if they disagree they have to fight it out right there in the thread, with receipts. then a human reads the room and makes the call.
 
-The first idea was "a bot that scores repos". That's the wrong shape for Switch. The right shape is **a room
-per case**, because a room gives you exactly what a judging panel needs:
+AI does the grind. a person gives the verdict. always.
 
-- **shared context**: the Inspector's error output is right there when the Critic argues and when the
-  human decides
-- **documents**: the rubric and the submission travel with the room, so every agent reads the same brief
-- **addressing**: agents wake when they're mentioned, so the clerk can hand work to a specific judge
-- **links**: every case room points at the judging floor and back at intake, so agents can find their way
+![the jury console. 12 cases on the floor, 3 need you](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/console.png)
 
-The bench:
+## why Switch made this click
 
-| Agent | Runs on | Job |
+quick context if you haven't touched it: Switch turns every channel in your team chat into a **room**. messages, docs, links, roles, all shared between the people and the agents in there. agents show up like teammates. Switch Console runs your coding agents (claude code, opencode, codex) plus a local server, and anything else can plug in over the protocol. events stream down, http goes up.
+
+my first instinct was "build a bot that scores repos." wrong shape. the move is **one room per submission**, because a room already is a judging panel:
+
+- everyone sees the same evidence. when the critic argues, the inspector's error log is right there
+- the rubric and the submission live in the room as docs, so every judge reads the same brief
+- mentions wake specific agents, so the clerk can hand work to exactly who it needs
+- rooms link to each other, so a case always knows where the judging floor is
+
+once i saw it that way the whole thing kinda designed itself.
+
+## the bench
+
+| who | what it is | what it does |
 |---|---|---|
-| Clerk | my Python, on the raw protocol | opens case rooms, tallies scorecards, raises disagreements, records verdicts |
-| Auditor | my Python, on the raw protocol | clones the repo and reports facts: Switch wiring, setup steps, tests, video, commit window, leaked secrets |
-| Inspector | Claude Code via Console | actually installs and runs the submission from the README |
-| Critic | OpenCode via Console | judges the idea, the impact, and whether Switch is central |
+| clerk | my own agent, raw protocol | opens rooms, counts scorecards, calls out disagreements, records verdicts |
+| auditor | my own agent, raw protocol, zero LLM | clones the repo, checks the facts |
+| inspector | claude code through Console | actually installs and runs your project |
+| critic | opencode through Console | judges the idea, the impact, and whether Switch is actually central |
 
-Two different models on purpose: a bench of one model agreeing with itself isn't a panel.
+two different models on purpose. one model agreeing with itself isn't a panel, it's an echo.
 
-## Building it: the bits worth knowing
+the auditor being plain code is my favourite part. it checks if Switch is really wired in, if there are setup steps and tests, if your commits landed inside the hackathon window, and if you accidentally committed an api key (it masks it, don't worry). and you can't sweet talk it. argue with the auditor and it just tells you arguments don't move its scores, evidence in the repo does. love that guy.
 
-### 1. Let Switch Console hand you the address (and sometimes the key)
+## the part where it judged itself
 
-To register a custom agent you need the server's address and a **registration token**. Console's local server
-keeps its files in:
+best test i ran: pointed jury at its own repo with a live bench. figured it'd be a nice flex. it was humbling instead.
 
-```
-~/Library/Application Support/switchdash/local-switch-server/
-```
+the inspector (claude code) straight up refused to run my code at first. Console's auto mode saw code it had just cloned from outside and stopped it cold, so it asked me in the channel before touching anything. i okayed a short list of commands. it ran them, 38 tests passed, lint clean, cool cool.
 
-(`%APPDATA%\switchdash\…` on Windows, `~/.config/switchdash/…` on Linux.) Older builds leave a `.env` there
-with `AGENT_REGISTRATION_TOKEN` and `API_HOST_PORT`. Newer ones, like the 0.40 build I used, keep secrets
-encrypted and leave only `ports.json`, which still tells you the API port. Jury reads whichever is there, so
-`uv run jury up` finds the server by itself; on an encrypted build you create the token once under
-**Settings → API keys** and put it in `.env`.
+then it found a real bug. if a second copy of jury pointed at the same server, it would re-register the clerk and knock the live one offline. in prod that's your whole judging floor going dark mid-event. fixed it in the next commit and credited the inspector, because fair's fair.
 
-### 2. Registering an always-on agent
+the critic was even colder. it flagged its own conflict of interest (the bench was judging the repo its own instructions came from... yeah) and called out that my first commit was one giant drop, so the git history alone couldn't prove when it was built. also fair. the README says how it was built now.
+
+if your agents can review your project, let them. they'll be meaner than you.
+
+## making judges argue
+
+small feature, biggest payoff. every judge files a scorecard as a little json block in the room. if two of them are 4+ points apart on anything, the clerk pings both:
+
+> ⚔️ You disagree on **Use of Switch**: jury-auditor says 0, jury-critic says 9. Compare your evidence here, then each file a revised scorecard or say why you're keeping yours.
+
+so by the time a human opens the room, the argument already happened. with evidence. in the same thread. the human just reads it and decides.
+
+## the console
+
+chat is where the work happens. but nobody's scrolling through 200 rooms.
+
+so there's a console. and honestly v1 was mid. big numbers, ranked list, looked busy, explained nothing. someone landing on it cold had no clue what was going on. so i rebuilt it around one question: what does a judge need to know *right now*?
+
+- **where every case is.** filed, audited, AI panel, needs a human, verdict. the headline writes itself: "12 cases on the floor. 3 need you."
+- **what's on fire.** possible copies, judges who split hard, cases a human's been sitting on, appeals, dead links. one click opens the case
+- **no black box.** every case has a score receipt. each criterion, who scored it, the mean, the weight, the points. if a human overrode it, that's on there too
+- **is the AI even good?** a chart of the panel's score vs the human's final score, plus each judge's lean. that's how an organiser knows which judge to trust
+
+![a case file: score receipt, radar, scorecards](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/case-file.png)
+
+one call i went back and forth on: there's a verdict builder. pick shortlist, slide the score, type a note. but it doesn't submit anything. it copies the command and you paste it into the case room. why? because a verdict given in chat is on the record, under the judge's actual name, right next to the evidence. a button on a localhost page is faster and throws all of that away. not worth it.
+
+the whole console is one html file. no build step, no chart library, every chart drawn by hand in svg. and `jury demo` spins it up on a recorded floor so anyone can poke at it without a Switch server.
+
+![charts: score spread, criteria, panel vs human, timeline](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/insights.png)
+
+## stuff a real organiser needs
+
+once the loop worked i asked myself what someone running a 1,500 submission event would still be stressing about:
+
+- **copies.** the auditor fingerprints every repo, its git history and its actual code. same commits means the same project filed twice. a big chunk of the same code means copied. boilerplate everyone uses gets ignored so a shared starter doesn't make the whole floor look guilty. and it warns *both* rooms
+- **assigned judges.** humans get cases dealt out by workload and get pinged when one's ready. `my queue` shows your pile
+- **appeals.** participants can appeal from their thread. the case reopens, the old verdict stays on record
+- **feedback.** after a verdict the team can get the judges' actual reasons. most people never find out why they lost a hackathon. that sucks, so this fixes it
+- **reminders, deadlines, stats, calibration.** all one message to the clerk away
+
+## things that cost me an hour so they don't cost you one
+
+**send `Accept: text/event-stream`.** without it the events endpoint gives you one json blob and hangs up, then your heartbeat 404s and you'll swear the server is broken. it isn't. 20 minutes of my life, gone.
+
+**you pick the connection id, and you keep it.** reuse it across reconnects and resume with `Last-Event-ID`. that's how a dropped socket doesn't lose anything.
+
+**read the heartbeat interval from `connection_state`.** don't hardcode it. and a 404 or 409 on the beat means reopen the stream, not back off.
+
+**room ops need a room claim.** call `connect_to_room` first and send the connection id header. if one connection juggles many rooms, put a lock around claim-then-call or they'll step on each other.
+
+**rooms from yaml are the cheat code.** one call makes the channel, adds the agents, attaches the docs and posts the kickoff:
 
 ```python
-r = httpx.post(f"{base}/agents", headers={"Authorization": f"Bearer {registration_token}"}, json={
-    "name": "jury-clerk", "display_name": "Clerk", "description": "Runs the judging floor",
-    "connector_type": "jury",
-    "integration_profile": {"connection_model": "always_on", "message_exchange": True,
-                            "pre_invocation_mediation": [], "post_invocation_mediation": [],
-                            "event_reporting": []},
-})
-agent_id, api_key = r.json()["id"], r.json()["api_key"]   # the key comes back ONCE: store it
+await clerk.op("create_room_from_yaml", {"yaml": yaml.safe_dump(case_room)})
 ```
 
-The registration token only registers. Everything after that uses the agent's own API key.
+couple of catches: rooms need a `description`. `users:` needs a chat app behind the server. and `{$creator}` only works if Switch can match the agent's owner to a real chat account. on Console my agents belonged to a bootstrap user nobody was linked to, so i kept getting left out of my own rooms lol. jury falls back to named users now.
 
-### 3. The stream: send `Accept: text/event-stream`
+**newer Console builds encrypt the token.** older ones leave a `.env` with everything in it, the 0.40 build i ran only leaves `ports.json`. jury reads either, so it finds the server by itself. you just make a registration key once in settings.
 
-This one cost me twenty minutes. `GET /agents/{id}/events` **without** `Accept: text/event-stream` answers
-with a one-shot JSON poll (`{"events": [...]}`) and closes. Your heartbeat then gets a 404, *"connection … is
-not open; reconnect"*, and it looks like the server is broken. Send the header and you get a proper stream
-whose first frame is `connection_state`.
+**doc edits get announced.** every update posts a notice in the channel. great for transparency, terrible if you rewrite a leaderboard after every scorecard. debounce it.
 
-Two more stream rules:
+**ship a template, not a yaml file.** i linted mine with Switch's own linter (0 errors, 0 warnings) and `jury up` publishes it, so whoever sets this up just clicks create in Console and gets both judges.
 
-- **You choose the connection id** (a UUID), and you **reuse it across reconnects**. That's what lets a
-  connection survive a dropped socket. Resume with `Last-Event-ID`.
-- **Read the heartbeat interval from `connection_state`**, don't hard-code it. The server I ran announced
-  `heartbeat_interval_seconds: 10`. A 404 or 409 from `/connection/beat` means *reopen the stream*, not back off.
+## run it yourself
 
-### 4. Room-bound operations need a room claim
-
-Operations live at `POST /agents/{id}/ops/{name}`, with the arguments object as the body. Many of them act on
-"the connected room", which the server resolves from your connection. So you call `connect_to_room` first and
-send `X-Switch-Connection-Id` on the next call. `list_participants`, for example, rejects a `room_id` argument
-outright. With one connection juggling many rooms, I put a lock around *claim, then call* so two rooms never
-interleave.
-
-### 5. Rooms from YAML are the superpower
-
-Every case room is generated:
-
-```python
-doc = {"room": {"name": "case-007-yourrepo", "description": "...", "instructions": CASE_RULES,
-                "agents": ["jury-clerk", "jury-auditor", "jury-inspector", "jury-critic"],
-                "users": ["{$creator}"],
-                "docs": [{"name": "Rubric", ...}, {"name": "Submission", ...}]},
-       "kickoff": "@jury-inspector @jury-critic Case #007 is open: ..."}
-await clerk.op("create_room_from_yaml", {"yaml": yaml.safe_dump(doc)})
-```
-
-That one call creates a chat channel, puts the right agents and me in it, attaches the documents and posts
-the kickoff. Two things to know:
-
-- `description` is required on a room.
-- `users:` needs a messaging app behind the room. On a server with no app connected the run is refused with a
-  clear message. Jury retries without `users` so the same code works on a bare server.
-- `{$creator}` means the person who owns the agent, and only works if Switch can match that owner to a chat
-  account. On Console the agents belong to a bootstrap user that isn't linked to anyone in Mattermost, so I
-  wasn't being added to my own case rooms. Jury now falls back to named users (`JURY_JUDGE_USERS=apex`).
-
-### 6. A kickoff speaks for the agent, so open addressing
-
-When an *agent* runs a template, the kickoff is posted with the agent's authority, not its owner's. The agents
-it mentions wake only if their addressing policy lets that agent in, and the server checks this **before
-creating anything**. My judges use `addressing: anyone` in their template. For my own two protocol agents I
-call `update_agent_detail(addressing="anyone")` on each other: an agent can't change its own settings, but it
-can change a sibling with the same owner.
-
-### 7. Document edits are announced
-
-Every `update_room_document` posts a little "📄 updated room document" notice in the channel. That's great for
-transparency and terrible if you rewrite a leaderboard after every scorecard. Jury debounces: a burst of
-scorecards becomes one edit.
-
-### 8. Publish your template where people will click it
-
-Agent templates are YAML too. Mine creates the Inspector and the Critic on two different providers, plus a
-`#jury-chambers` room where they introduce themselves. Before shipping it I ran it through Switch's own
-linter (`switch_core.template_lint.lint_template`): 0 errors, 0 warnings. Then `jury up` calls `save_template`,
-so it shows up in Console's **Templates** page. The person setting up Jury never touches a YAML file.
-
-## Making judges argue
-
-The feature I like most is small. Each judge files a scorecard as a fenced JSON block in the room. When two
-judges are four or more points apart on a criterion, Clerk addresses both of them:
-
-> ⚔️ You disagree on **Use of Switch**: jury-auditor says 0, jury-critic says 9. Compare your evidence here,
-> then each file a revised scorecard or say why you're keeping yours.
-
-The Auditor is deterministic, and when it's argued with it says so: arguments don't move its scores, evidence
-in the repo does. The LLM judges have to bring receipts. By the time a human opens the room the argument has
-already happened, with evidence, in the same thread.
-
-## Letting Jury judge itself
-
-The best testing I did was pointing Jury at its own repo on a live bench. The judges were brutally useful:
-
-- **The Inspector (Claude Code) refused to run the code at first.** Console's auto mode flagged "Code from
-  External", so it stopped and asked me in the channel, offering two options. I approved a narrow set of
-  commands. It ran them, reported `38 passed`, then **found a real bug**: a second copy of Jury pointed at the
-  same server would re-register `jury-clerk` with `overwrite=True` and knock the live one offline. Jury now
-  refuses to do that unless you ask.
-- **It filed its scorecard in a shape I hadn't planned for** (JSON lines wrapped in backticks). Clerk now parses
-  that too, and `@jury-clerk rescan` re-reads a room for anything it missed.
-- **The Critic flagged its own conflict of interest**, and that my first commit was one big drop, so history
-  alone couldn't prove when it was built. Fair. The README now says how it was built.
-
-If your agents can review your project, let them. They'll be harsher than you are.
-
-## A console a judge can read in five seconds
-
-The chat is where the work happens, but nobody can see 200 rooms at once. So Jury serves a console on
-`localhost:8787`, refreshed every three seconds from the same state Clerk keeps. My first version was a ranked
-list with big numbers, and it looked busy without explaining anything. Someone landing on it cold couldn't
-tell what was going on. So the rebuild starts from one question: what does a judge need to know right now?
-
-- **Where every case is.** A pipeline across the top: filed, audited, on the AI panel, *needs a human*,
-  verdict. The headline writes itself from it: "12 cases on the floor. 3 need you."
-- **What needs attention.** Possible copies, judges who split by four or more points, cases sitting on a
-  human past the reminder time, appeals and dead links. Each one opens its case.
-- **Every number explains itself.** The case file has a score receipt: each criterion, which judges scored
-  it, the mean, the weight, the points, and the human override if there was one. Next to it, a radar against
-  the floor average or any other case.
-- **Is the AI any good?** A chart of the panel's score against the human's final score for every decided
-  case, and each judge's average lean against the humans. That's what tells an organiser which judge to trust.
-
-![A Jury case file: the score receipt, the criteria radar and the scorecard table](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/case-file.png)
-
-One design choice I went back and forth on: the console has a **verdict builder** (pick shortlist, slide the
-score, add a note), but it doesn't submit anything. It copies the exact command, and you paste it in the case
-room. A verdict given in chat is on the record in Switch, under the judge's own name, in the same thread as
-the evidence. A button on a localhost page would be quicker and would throw that away.
-
-The console is one HTML file with no build step, hand-drawn SVG charts and no libraries. `jury demo` serves it
-on a recorded floor of sample cases, built by a script that runs them through the same scoring code and the
-same snapshot as a live floor. So anyone can see the console without a Switch server, and what they see is
-what `jury up` would show.
-
-![Charts on the Jury console: score distribution, criteria, panel against human, and a timeline of every case](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/insights.png)
-
-## The parts a real judging team needs
-
-Once the loop worked I asked what an organiser with 1,500 submissions would still be missing:
-
-- **Copy detection.** The Auditor fingerprints each repo's distinctive code lines and commit ids. Same commits
-  means shared history (a fork, or one project submitted twice); a high share of shared lines means copied
-  code. Lines that many submissions share (framework boilerplate, the official examples) are discounted before
-  comparing, so a common starter doesn't make everyone look guilty. It warns **both** case rooms, which is a nice
-  use of Switch: one agent posting into another room it belongs to.
-- **Human judges get assigned** cases round-robin by load, are @mentioned when a case is ready, and have
-  `@jury-clerk my queue`.
-- **Appeals** reopen a case from the participant's intake thread, keeping the old verdict on record.
-- **Stats**: median time from filing to a full panel, copies, overrides, appeals.
-- **Explanations and calibration in chat.** `@jury-clerk explain 7` prints the score receipt;
-  `calibration` says which AI judge runs generous or harsh against the humans.
-- **Feedback for participants.** After a verdict, the submitter can get the judges' reasons and the red flags
-  worth fixing in their intake thread. Most hackathon entrants never hear why they lost.
-- **Reminders and deadline control.** Clerk nudges a judge sitting on a finished case, and
-  `close intake` stops new filings at the deadline.
-
-## Reproducing it without any LLM
-
-Judges will clone this repo, so it had to run without my laptop's Claude Code and OpenCode logins. One command
-does it, with nothing but Docker:
+judges are gonna clone this, so it had to work without my laptop's logins. one command, just docker:
 
 ```bash
 docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke
 ```
 
-That starts Postgres, the published `switch-core` image, Jury, scripted stand-in judges and a smoke test. The
-smoke test files a real repo, waits for three scorecards, posts a human verdict through the Gateway, checks the
-leaderboard, and exits 0. Two gotchas from building it: `--exit-code-from` stops *every* container when *any*
-exits, so a one-shot "create the DB role" container kills the stack (put it in Postgres's init scripts instead);
-and gate the agents on a Switch health check rather than letting them crash-loop through its first boot.
+fresh Switch server, jury, stand-in judges, and a smoke test that files a real repo, waits for scorecards, gives a human verdict and exits 0. plus 58 tests behind it.
 
-Plus 58 unit tests, including the protocol client against a fake Switch server, Clerk's workflow against a
-fake agent, and the console's data, demo floor and web server.
+or just `uv run jury demo` and click around.
 
-## What I'd tell a first-time Switch builder
+## what i'd tell anyone building on Switch
 
-1. **Start from the room, not the bot.** Ask what a room per *thing* gives you: context, docs, links, the right
-   people. That's where Switch earns its place.
-2. **Read `connection_state`** and trust it over your assumptions.
-3. **Templates beat code** for anything a person sets up. Lint them with Switch's own linter.
-4. **Humans decide.** Agents gather evidence. Switch is built for that split.
-5. **Show the state, not just the score.** A page of numbers isn't a dashboard. Say where everything is and
-   what needs a person.
+1. start from the room, not the bot
+2. trust `connection_state` over your assumptions
+3. templates > code for anything a person sets up
+4. agents gather evidence, humans decide. Switch is built for exactly that split
+5. show the state, not just the score
 
-Jury is Apache-2.0. Swap `rubrics/flip-the-switch.yaml` for `rubrics/take-home.yaml` and it reviews hiring
-take-homes. If you run a hackathon, I'd love to hear what it gets wrong.
+jury's apache-2.0. swap one rubric file and it reviews hiring take-homes instead. if you run hackathons, go break it and tell me what it gets wrong.
 
 #HowISwitch

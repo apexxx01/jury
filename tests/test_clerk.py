@@ -128,3 +128,59 @@ async def test_commands(clerk):
     assert "@ben's queue" in clerk.agent.posts[-1][1]
     await clerk._command("R-floor", {"message_id": "c3", "sender_name": "ben"}, "@jury-clerk stats", None)
     assert "Jury stats" in clerk.agent.posts[-1][1]
+
+
+def scored(clerk, n, verdict_score=None):
+    case = add(clerk, n, status="decided" if verdict_score is not None else "scored")
+    case.scorecards = {
+        "jury-auditor": {"scores": {"use_of_switch": 10, "technical_execution": 9, "presentation": 7}, "summary": "facts ok"},
+        "jury-inspector": {"scores": {"technical_execution": 7, "creativity_impact": 7}, "summary": "38 tests pass"},
+        "jury-critic": {"scores": {"use_of_switch": 9, "creativity_impact": 7, "presentation": 6}, "notes": {"presentation": "no video"}},
+    }
+    case.provisional, case.complete = scoring.provisional_score(case.scorecards, clerk.rubric)
+    if verdict_score is not None:
+        case.verdict = {"decision": "shortlist", "score": verdict_score, "judge": "asha", "note": "strong"}
+    return case
+
+
+def test_explain_shows_the_arithmetic(clerk):
+    case = scored(clerk, 1, 90)
+    text = clerk.explain_md(case)
+    assert "mean of jury-auditor 10, jury-critic 9 = **9.5**/10 → 28.5 pts" in text
+    assert "Panel total: **79/100**" in text
+    assert "score set to 90" in text
+
+
+def test_calibration_compares_each_judge_with_humans(clerk):
+    scored(clerk, 1, 70)
+    scored(clerk, 2, 70)
+    text = clerk.calibration_md()
+    # auditor alone: (30*1 + 25*.9 + 20*.7)/75*100 = 88.7 -> +18.7 vs 70
+    assert "**jury-auditor**: +18.7 pts" in text and "too generous" in text
+    assert text.index("jury-auditor") < text.index("jury-inspector")
+
+
+def test_calibration_needs_scored_verdicts(clerk):
+    scored(clerk, 1)
+    assert "No calibration yet" in clerk.calibration_md()
+
+
+async def test_feedback_goes_to_the_intake_thread_when_enabled(clerk):
+    clerk.cfg.share_feedback = True
+    case = scored(clerk, 3)
+    case.red_flags = ["No demo video link in the README."]
+    await clerk._record_verdict(case, "asha", {"decision": "shortlist", "score": 88, "note": "great"}, "v1")
+    fb = [b for r, b in clerk.agent.posts if r == "R-in"]
+    assert fb and "Feedback on Case #003" in fb[0] and "38 tests pass" in fb[0] and "Worth fixing" in fb[0] and "appeal" in fb[0]
+    # once only
+    await clerk._record_verdict(case, "asha", {"decision": "shortlist", "score": 89, "note": ""}, "v2")
+    assert len([b for r, b in clerk.agent.posts if r == "R-in"]) == 1
+
+
+async def test_closed_intake_refuses_new_cases(clerk):
+    await clerk._command("R-floor", {"message_id": "c1"}, "@jury-clerk close intake", None)
+    assert clerk.state.intake_closed
+    assert await clerk.open_case("new", "repo", {"message_id": "m9", "sender_name": "p"}) is None
+    assert any("Intake is closed" in b for r, b in clerk.agent.posts if r == "R-in")
+    await clerk._command("R-floor", {"message_id": "c2"}, "@jury-clerk open intake", None)
+    assert not clerk.state.intake_closed

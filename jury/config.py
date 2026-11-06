@@ -99,6 +99,8 @@ class Config:
     clone_timeout: int = 120
     disagreement_gap: float = 4.0
     public_url: str | None = None
+    share_feedback: bool = False
+    enforce_deadline: bool = False
 
     @property
     def workdir(self) -> Path:
@@ -144,6 +146,8 @@ def load(cwd: Path | None = None) -> Config:
         clone_timeout=int(get("JURY_CLONE_TIMEOUT", "120") or 120),
         disagreement_gap=float(get("JURY_DISAGREEMENT_GAP", "4") or 4),
         public_url=get("JURY_PUBLIC_URL"),
+        share_feedback=(get("JURY_SHARE_FEEDBACK", "") or "").lower() in ("1", "true", "yes", "on"),
+        enforce_deadline=(get("JURY_ENFORCE_DEADLINE", "") or "").lower() in ("1", "true", "yes", "on"),
     )
     if ws := get("JURY_WINDOW_START"):
         cfg.window_start = datetime.fromisoformat(ws)

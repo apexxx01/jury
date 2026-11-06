@@ -32,6 +32,7 @@ HELP = """**Jury Clerk** · how this floor works
 • Paste a GitHub repo link in **#{intake}** and I open a case room for it. Reply `appeal <why>` in that thread to appeal a verdict.
 • In a case room, judges post scorecards; I tally them and flag disagreements.
 • A human judge decides: `@{clerk} verdict shortlist 88 great use of rooms` (verdicts: {verdicts}; the score is optional).
+• `@{clerk} explain 7` · `@{clerk} calibration` · `@{clerk} close intake` / `open intake`
 • `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} stats` · `@{clerk} my queue` · `@{clerk} assign 7 to @name` · `@{clerk} case 7` · `@{clerk} rescore` / `rescan` / `summon` (in a case room) · `@{clerk} help`"""
 
 INTAKE_INSTRUCTIONS = """This is the Jury intake room. People paste GitHub repository links of
@@ -260,8 +261,17 @@ class Clerk:
             where = f"#{existing.room_name}" if existing.room_name else "its room"
             await self.agent.post(intake, f"📎 `{owner}/{repo}` is already on file as **{existing.label}** → {where}.", thread)
             return existing
+        if self.state.intake_closed:
+            await self.agent.post(
+                intake,
+                f"🚪 Intake is closed, so `{owner}/{repo}` was not filed. A judge can reopen it with `@{self.name} open intake`.",
+                thread,
+            )
+            return None
         submitter = p.get("on_behalf_of") or p.get("sender_name") or "someone"
         case = Case(number=self.state.next_number(), owner=owner, repo=repo, submitter=submitter, intake_message_id=thread)
+        if self.cfg.enforce_deadline and time.time() > self.cfg.window_end.timestamp():
+            case.red_flags.append(f"Filed after the submission deadline ({self.cfg.window_end:%b %d, %H:%M %Z}).")
         self.state.cases[key] = case
         self.state.save()
         judges = await self.present_judges()
@@ -487,7 +497,83 @@ class Clerk:
             + (f" ({final:g}/100)" if final is not None else "")
             + f" by {judge}"
         )
+        if self.cfg.share_feedback and case.intake_message_id and not case.extra.get("feedback_sent"):
+            await self.agent.post(self.state.rooms["intake"], self.feedback_md(case), case.intake_message_id)
+            case.extra["feedback_sent"] = True
         self._changed()
+
+    # ── explanations ───────────────────────────────────────────────────────
+
+    def explain_md(self, case: Case) -> str:
+        """How the score was computed, judge by judge, so nobody has to trust a number."""
+        lines = [f"**How {case.label} got its score** · {self.rubric.name}"]
+        means = scoring.criterion_means(case.scorecards, self.rubric)
+        covered = 0.0
+        for c in self.rubric.criteria:
+            parts = [f"{j} {card['scores'][c.id]:g}" for j, card in case.scorecards.items() if c.id in card.get("scores", {})]
+            if c.id in means:
+                covered += c.weight
+                pts = c.weight * means[c.id] / 10
+                lines.append(f"• **{c.label}** ({c.weight:g}%): mean of {', '.join(parts)} = **{means[c.id]:.1f}**/10 → {pts:.1f} pts")
+            else:
+                lines.append(f"• **{c.label}** ({c.weight:g}%): no scorecard yet")
+        if case.provisional is not None:
+            raw = sum(c.weight * means[c.id] / 10 for c in self.rubric.criteria if c.id in means)
+            if covered < 100:
+                lines.append(
+                    f"Covered {covered:g}% of the rubric: {raw:.1f} pts scaled to 100 = **{case.provisional:g}/100** (provisional)"
+                )
+            else:
+                lines.append(f"Panel total: **{case.provisional:g}/100**")
+        if case.verdict:
+            v = case.verdict
+            lines.append(
+                f"Human verdict: **{v['decision'].upper()}** by {v.get('judge', '?')}"
+                + (f", score set to {v['score']:g}" if v.get("score") is not None else ", panel score kept")
+                + (f". Note: {v['note']}" if v.get("note") else "")
+            )
+        if case.red_flags:
+            lines.append("Red flags: " + "; ".join(case.red_flags[:5]))
+        return "\n".join(lines)
+
+    def calibration_md(self) -> str:
+        """How each AI judge's scores compare with the humans' final scores."""
+        diffs: dict[str, list[float]] = {}
+        for case in self.state.cases.values():
+            v = case.verdict or {}
+            human = v.get("score")
+            if human is None:
+                continue
+            for judge, card in case.scorecards.items():
+                own = scoring.provisional_score({judge: card}, self.rubric)[0]
+                if own is not None:
+                    diffs.setdefault(judge, []).append(own - float(human))
+        if not diffs:
+            return "No calibration yet: it needs verdicts that carry a human score (`verdict shortlist 88 …`)."
+        lines = ["**Judge calibration** · each AI judge's own score vs the human's final score"]
+        for judge, d in sorted(diffs.items(), key=lambda kv: -abs(sum(kv[1]) / len(kv[1]))):
+            mean = sum(d) / len(d)
+            spread = (sum((x - mean) ** 2 for x in d) / len(d)) ** 0.5
+            lean = "about right" if abs(mean) < 3 else ("too generous" if mean > 0 else "too harsh")
+            lines.append(f"• **{judge}**: {mean:+.1f} pts on average over {len(d)} case(s), ±{spread:.1f}: {lean}")
+        return "\n".join(lines)
+
+    def feedback_md(self, case: Case) -> str:
+        """What the participant gets back: the judges' reasons, not just a number."""
+        v = case.verdict or {}
+        lines = [f"📬 **Feedback on {case.label} `{case.owner}/{case.repo}`** from the Jury bench"]
+        if case.final is not None:
+            lines.append(f"Score: **{case.final:g}/100** · {v.get('decision', '').upper()}")
+        for judge, card in case.scorecards.items():
+            note = card.get("summary") or "; ".join(card.get("notes", {}).values())
+            if note:
+                lines.append(f"• **{judge}**: {note[:300]}")
+        if case.red_flags:
+            lines.append("Worth fixing: " + "; ".join(case.red_flags[:4]))
+        if v.get("note"):
+            lines.append(f"From the human judge: “{v['note']}”")
+        lines.append("Reply `appeal <why>` in this thread if you think something was missed.")
+        return "\n".join(lines)
 
     # ── commands ───────────────────────────────────────────────────────────
 
@@ -510,6 +596,24 @@ class Clerk:
                 if c.room_id and c.room_id != room_id:
                     await self.agent.post(c.room_id, f"👤 @{m.group(2)} is now the human judge on this case.")
                 self._changed()
+        elif text.startswith(("explain", "why")):
+            m = re.search(r"#?(\d+)", text)
+            c = self.state.by_number(int(m.group(1))) if m else case
+            await self.agent.post(room_id, self.explain_md(c) if c else "Which case? `explain 7`, or ask in its room.", thread)
+        elif text.startswith(("calibration", "calibrate", "bias")):
+            await self.agent.post(room_id, self.calibration_md(), thread)
+        elif text.startswith(("feedback",)) and case:
+            await self.agent.post(room_id, self.feedback_md(case), thread)
+        elif text.startswith(("close intake", "lock intake")):
+            self.state.intake_closed = True
+            await self.agent.post(self.state.rooms["intake"], "🚪 **Intake is closed.** New links won't be filed. Judging continues.")
+            if room_id != self.state.rooms["intake"]:
+                await self.agent.post(room_id, "Intake closed.", thread)
+        elif text.startswith(("open intake", "reopen intake", "unlock intake")):
+            self.state.intake_closed = False
+            await self.agent.post(self.state.rooms["intake"], "🚪 **Intake is open again.** Paste a repo link to file it.")
+            if room_id != self.state.rooms["intake"]:
+                await self.agent.post(room_id, "Intake open.", thread)
         elif text.startswith(("stats", "metrics")):
             await self.agent.post(room_id, self.stats_md(), thread)
         elif text.startswith(("leaderboard", "board", "rank", "top")):

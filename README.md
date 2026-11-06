@@ -103,6 +103,15 @@ Beyond the first pass, the parts an organiser actually needs at 1,500 submission
 - **Numbers for the organiser.** `@jury-clerk stats` reports the median time from filing to a full panel,
   red-flag and copy counts, appeals, and how often humans overrode the panel. The live leaderboard shows the
   same.
+- **Every score explains itself.** `@jury-clerk explain 7` shows the arithmetic: each criterion, which judges
+  scored it, the mean, the weight, the points, and whether a human overrode the total.
+- **Calibration.** `@jury-clerk calibration` compares each AI judge's own score with the humans' final scores
+  ("jury-inspector: +6.2 pts on average, too generous"), so organisers know which judge to trust.
+- **Feedback for participants.** With `JURY_SHARE_FEEDBACK=1`, the submitter gets the judges' reasons, the red
+  flags worth fixing and the human's note in their intake thread after the verdict, with a reminder that they
+  can appeal. Most hackathon entrants never hear why they lost.
+- **Deadline control.** `@jury-clerk close intake` stops new filings, and `open intake` reopens them. With
+  `JURY_ENFORCE_DEADLINE=1`, anything filed after `JURY_WINDOW_END` is flagged as late.
 - **Bulk in, bulk out.** `jury import submissions.csv` files every repo link in a platform export.
   `jury export --csv` writes the results with per-criterion means, flags and verdicts.
 
@@ -174,6 +183,9 @@ most of it Docker and chat-app setup; [`docs/RUNBOOK.md`](docs/RUNBOOK.md) walks
 | `@jury-clerk verdict shortlist 88 note` | a case room | the verdict is recorded. The score is optional and overrides the panel's |
 | `@jury-clerk leaderboard` / `status` / `stats` / `case 7` | anywhere | the ranking, counts, organiser numbers, or one case |
 | `@jury-clerk my queue` · `assign 7 to @ben` | anywhere | a human judge's pile · hand a case to someone |
+| `@jury-clerk explain 7` · `calibration` | anywhere | how a score was computed · which AI judge leans generous or harsh |
+| `@jury-clerk close intake` · `open intake` | anywhere | stop or resume new filings |
+| `@jury-clerk feedback` | a case room | preview what the participant would be sent |
 | `appeal <why>` | the submission's intake thread | the verdict is set aside and the case goes back to its judge |
 | `@jury-clerk summon` | a case room | pull in a judge that was added or re-created after the case opened |
 | `@jury-clerk rescore` / `rescan` / `reaudit` | a case room | recount, re-read the room for scorecards Clerk missed, or have the Auditor re-clone after a fix |

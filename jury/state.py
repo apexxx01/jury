@@ -91,6 +91,7 @@ class State:
     floor_doc_hash: str | None = None
     cases: dict[str, Case] = field(default_factory=dict)  # key -> case
     seen: list[str] = field(default_factory=list)  # message ids already handled
+    intake_closed: bool = False
 
     @classmethod
     def load(cls, path: Path) -> State:
@@ -104,6 +105,7 @@ class State:
             rooms=raw.get("rooms", {}),
             floor_doc_id=raw.get("floor_doc_id"),
             floor_doc_hash=raw.get("floor_doc_hash"),
+            intake_closed=bool(raw.get("intake_closed", False)),
             cases=cases,
             seen=raw.get("seen", [])[-2000:],
         )
@@ -115,6 +117,7 @@ class State:
             "rooms": self.rooms,
             "floor_doc_id": self.floor_doc_id,
             "floor_doc_hash": self.floor_doc_hash,
+            "intake_closed": self.intake_closed,
             "cases": {k: asdict(v) for k, v in self.cases.items()},
             "seen": self.seen[-2000:],
         }

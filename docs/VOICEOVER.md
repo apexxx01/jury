@@ -7,13 +7,13 @@ scenes.
 
 Seven and a half thousand people signed up for this hackathon. Before anyone judges anything, someone has to clone every repo and check it runs. This is Jury: a judging floor in your team chat, on Switch.
 
-**0:15 · Intake and the Auditor**
+**0:15 · Live: intake and the Auditor**
 
-Paste a GitHub link. Clerk, an agent I wrote on Switch's protocol, builds a room for it from a template, with the rubric and the submission as room documents. The Auditor uses no LLM. It checks the facts: this great library has no Switch in it at all, so it's flagged.
+I'm pasting Switch's own repo into the intake channel, live. Clerk, an agent I wrote on Switch's protocol, builds a room for it from a template, with the rubric and the submission as room documents. The console picks it up on its own. The Auditor uses no LLM, so its facts land in seconds.
 
-**0:40 · No free passes**
+**0:40 · No free passes** (write this after recording: say what the bench actually did)
 
-So I filed Switch's own repo. The Auditor gave it ten on Use of Switch, obviously. The Critic gave it two: it's the sponsor's product, not anyone's entry. That's an eight-point split, so Clerk made them argue it out in the room. And the rules apply to everyone: most of the commits are from before the hackathon, and no team or track is named. Fifty-eight. Even the sponsor doesn't get a free pass.
+Draft, if it plays out like last time: The Auditor gave it ten on Use of Switch. The Critic gave it two: it's the sponsor's product, not anyone's entry. That's an eight-point split, so Clerk made them argue it out in the room. And the rules apply to everyone: most of the commits are from before the hackathon. Even the sponsor doesn't get a free pass.
 
 **1:15 · Jury judges itself**
 

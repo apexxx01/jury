@@ -527,7 +527,10 @@ class Clerk:
             present = set(expected)
         added = []
         for j in judges:
-            if j in present and j in expected:
+            # In the room, expected and already scored: nothing to do. A judge
+            # deleted and re-created under the same name is in the room and
+            # expected but has never scored, so it gets the kickoff again.
+            if j in present and j in expected and j in case.scorecards:
                 continue
             if j not in present:
                 try:

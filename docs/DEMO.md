@@ -1,59 +1,70 @@
 # Demo video script (about 2:45)
 
-The judges score Presentation on "do the demo video and README make clear how Switch is used?", so every beat
-below shows a Switch feature doing real work. Record at 1080p or higher: Discord on the left two-thirds of the
-screen, a terminal or the web leaderboard on the right.
+Judges score Presentation on "do the demo video and README make clear how Switch is used?", so every beat
+shows a Switch feature doing real work. Record the Mattermost window in Chrome at full size, at 1080p or more.
+Cut every wait and put a small "⏩ 3 minutes later" card where you cut.
 
-**Prep (before you hit record):**
-- `jury up` is running, and the bench exists (see RUNBOOK).
-- Pre-run **two** cases so the floor isn't empty, e.g. `uv run jury submit https://github.com/pallets/click`
-  (a great library with no Switch in it, which gets red flags) and one strong Switch project.
-- Have the repo you'll submit live in your clipboard: **this repo, Jury itself**.
-- LLM judges take minutes. Record the waits and cut them. Put a "⏩ 4 minutes later" card where you cut.
+## Before you hit record
 
----
+- `jury up` is running (`git pull` first).
+- **Case #001 (Jury judging itself) is fully scored but has NO verdict yet.** You give it live in the video.
+- `docker compose -f repro/compose.yaml down -v` has been run, so the repro clip starts clean.
+- Have this in your clipboard: `https://github.com/pallets/click`. It's a great library with no Switch in
+  it, so the bench has something to catch.
+- Close other tabs. Turn on Do Not Disturb.
 
-**0:00–0:15 · Hook** (on the Discord intake channel)
-> "This hackathon had seven and a half thousand people register. Someone has to clone every submission,
-> check it runs, and find the video. That's a hundred-plus hours. Jury does the first pass inside Discord,
-> on Switch, and leaves the call to a human."
+## The script
+
+**0:00–0:15 · Hook** (on `jury-intake`)
+> "Seventy-five hundred people registered for this hackathon. Before anyone judges anything, someone has to
+> clone every repo, check it runs and find the video. Jury does that first pass inside the team chat, on
+> Switch, and leaves the call to a human."
 
 **0:15–0:35 · Intake → a room is born**
-Paste the Jury repo link in `#jury-intake`. Clerk replies in the thread and a new channel `#case-00N-jury`
-appears in the sidebar. **Point at the new channel.**
-> "Clerk is a custom agent I wrote on Switch's raw protocol. It built this room from a YAML template, with
-> its own instructions and documents, and linked it to the judging floor."
+Paste the click link in `jury-intake`. Clerk replies in the thread, and `case-002-click` appears in the
+sidebar. Point at it.
+> "Clerk is an agent I wrote directly on Switch's protocol. It just built this room from a template, with its
+> own instructions, the rubric and the submission as room documents, linked to the judging floor."
 
-**0:35–1:05 · The Auditor**
-Open the case channel. Show the kickoff, then the Auditor's report: Switch wiring, setup steps, commit window,
-secrets scan. Click the room's documents to show **Submission**, **Rubric** and **Auditor report**.
-> "The Auditor is deterministic, no LLM. It clones the repo and checks hard facts, including whether the
-> commits fall inside the hackathon window and whether anyone committed an API key."
+**0:35–0:55 · The Auditor catches it**
+Open `case-002-click`. Show the Auditor's report: *"No trace of Switch in the repository."* Open the room's
+documents.
+> "The Auditor uses no LLM. It clones the repo and checks facts: Switch wiring, setup steps, whether the
+> commits fall inside the hackathon window, and whether anyone committed an API key."
 
-**1:05–1:40 · The LLM judges, and the argument** *(cut the wait)*
-Show the Inspector's run report (exact commands it ran) and the Critic's critique, each with a scorecard.
-Then show Clerk's tally line, and **if Clerk raised a disagreement, linger on it** and on the judges'
-replies to each other.
-> "Inspector is Claude Code, and it actually ran the project. Critic is OpenCode, so it's a different agent on
-> purpose. When they disagree, Clerk makes them settle it in the room, with evidence, before a human looks."
+**0:55–1:35 · Jury judging itself** (cut to `case-001-jury`; this is the heart of the video)
+Scroll through it slowly:
+1. **The Inspector's first message:** it refused to run code it had just cloned until a human approved.
+   > "Inspector is Claude Code. Switch Console's auto mode stopped it from running untrusted code, so it
+   > asked a person, right here in the channel."
+2. **Your approval reply**, then **its real run**: `38 passed`, ruff clean.
+3. **The bug it found:** "`jury up` is unsafe on this server… could knock out the live Clerk."
+   > "And it found a real bug in Jury. A second copy would hijack the live Clerk. I fixed it, and the commit
+   > credits the Inspector."
+4. **Clerk's tally lines** after each scorecard, and `✅ All scorecards are in`.
 
-**1:40–2:05 · The human decides**
-Ask one follow-up yourself: `@jury-inspector did the tests pass on a clean clone?` and show the reply (cut the
-wait). Then type:
-`@jury-clerk verdict shortlist 91 judged itself and still passed`
+**1:35–1:55 · The human decides** (live)
+In `case-001-jury` type:
+`@jury-clerk verdict shortlist 90 judged itself, found its own bug, and still passed`
 Show Clerk's verdict line with the rank.
+> "Agents gather evidence and argue. Only a human gives the verdict."
 
-**2:05–2:30 · The floor**
-Switch to `#jury-floor`: the verdict post and the **Leaderboard** document. Then the web leaderboard at
-`localhost:8787`, with cases ranked and red flags visible on the click case.
-> "Every verdict lands on the floor and on a live leaderboard. Export it to CSV when judging's done."
+**1:55–2:15 · The floor**
+`jury-floor` shows the verdict post. Then the web leaderboard at `localhost:8787`: Jury shortlisted, and click
+being judged with its red flag.
 
-**2:30–2:45 · Why Switch** (README "How Switch is used" table on screen)
-> "Rooms, templates, documents, links, addressing, three kinds of agent on two models, and a custom protocol
-> client. Take Switch away and Jury is a script with nobody to talk to. It also reviews hiring take-homes:
-> swap one rubric file. Jury: every submission gets a room, a human gets the verdict."
+**2:15–2:30 · Anyone can reproduce it** (terminal)
+Show `docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke`
+finishing with `✓ the whole loop works`. Speed the clip up.
+> "One command runs the whole loop on a fresh Switch server. No keys, no setup."
 
----
+**2:30–2:45 · Why Switch** (README's "How Switch is used" table on screen)
+> "Rooms from templates, room documents, links, addressing, Claude Code and two protocol agents in one
+> channel, and people in the loop. Take Switch away and Jury is a script with nobody to talk to. Swap one
+> rubric file and it reviews hiring take-homes instead. Jury: every submission gets a room, a human gets the
+> verdict."
 
-Upload to YouTube (unlisted is fine) and put the link where `DEMO_VIDEO_URL` sits at the top of the README.
-That also turns the Auditor's "demo video" check green when Jury judges itself.
+## After
+
+Upload to YouTube (unlisted is fine). Replace `DEMO_VIDEO_URL` at the top of the README with the link and
+push. That also clears the Auditor's video flag when Jury judges itself.

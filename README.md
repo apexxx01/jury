@@ -112,8 +112,11 @@ Beyond the first pass, the parts an organiser actually needs at 1,500 submission
   can appeal. Most hackathon entrants never hear why they lost.
 - **Deadline control.** `@jury-clerk close intake` stops new filings, and `open intake` reopens them. With
   `JURY_ENFORCE_DEADLINE=1`, anything filed after `JURY_WINDOW_END` is flagged as late.
+- **Reminders.** When a finished panel waits more than `JURY_REMIND_MINUTES` (30 by default) for a human, Clerk
+  posts one reminder on the floor, grouped by assigned judge.
 - **Bulk in, bulk out.** `jury import submissions.csv` files every repo link in a platform export.
-  `jury export --csv` writes the results with per-criterion means, flags and verdicts.
+  `jury export --csv results.csv` writes per-criterion means, flags and verdicts; `jury export --md results.md`
+  writes a results write-up (ranking, then each decision's reasons) ready to post.
 
 ## How Switch is used
 

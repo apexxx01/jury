@@ -101,6 +101,7 @@ class Config:
     public_url: str | None = None
     share_feedback: bool = False
     enforce_deadline: bool = False
+    remind_minutes: int = 30
 
     @property
     def workdir(self) -> Path:
@@ -148,6 +149,7 @@ def load(cwd: Path | None = None) -> Config:
         public_url=get("JURY_PUBLIC_URL"),
         share_feedback=(get("JURY_SHARE_FEEDBACK", "") or "").lower() in ("1", "true", "yes", "on"),
         enforce_deadline=(get("JURY_ENFORCE_DEADLINE", "") or "").lower() in ("1", "true", "yes", "on"),
+        remind_minutes=int(get("JURY_REMIND_MINUTES", "30") or 30),
     )
     if ws := get("JURY_WINDOW_START"):
         cfg.window_start = datetime.fromisoformat(ws)

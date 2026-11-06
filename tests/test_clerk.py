@@ -184,3 +184,30 @@ async def test_closed_intake_refuses_new_cases(clerk):
     assert any("Intake is closed" in b for r, b in clerk.agent.posts if r == "R-in")
     await clerk._command("R-floor", {"message_id": "c2"}, "@jury-clerk open intake", None)
     assert not clerk.state.intake_closed
+
+
+def test_overdue_cases_are_grouped_by_judge(clerk):
+    a = add(clerk, 1, status="scored", assignee="asha")
+    a.created_at = time.time() - 3600
+    a.extra["first_pass_s"] = 60
+    b = add(clerk, 2, status="scored", assignee="ben")
+    b.created_at = time.time() - 120
+    b.extra["first_pass_s"] = 60  # ready a minute ago: not overdue yet
+    done = add(clerk, 3, status="decided", assignee="asha")
+    done.created_at = time.time() - 9999
+    done.extra["first_pass_s"] = 1
+    over = clerk.overdue(30)
+    assert [c.number for c in over] == [1]
+    text = clerk.reminder_md(over)
+    assert "@asha" in text and "#001" in text and "ben" not in text
+    assert clerk.reminder_md([]) is None
+
+
+def test_results_markdown(clerk):
+    from jury.cli import results_markdown
+
+    scored(clerk, 1, 90)
+    md = results_markdown(clerk.state, clerk.rubric)
+    assert md.startswith("# Results · Flip the Switch 2026")
+    assert "| 1 | [o/r1](https://github.com/o/r1) | SHORTLIST | 90 |" in md
+    assert "> strong (asha)" in md and "**jury-inspector**: 38 tests pass" in md

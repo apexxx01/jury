@@ -502,6 +502,45 @@ class Clerk:
             case.extra["feedback_sent"] = True
         self._changed()
 
+    # ── reminders ──────────────────────────────────────────────────────────
+
+    def overdue(self, minutes: float, now: float | None = None) -> list[Case]:
+        """Cases whose panel finished more than ``minutes`` ago and still have no verdict."""
+        now = now or time.time()
+        out = []
+        for c in self.state.cases.values():
+            if c.status != "scored" or c.extra.get("first_pass_s") is None:
+                continue
+            ready_at = c.created_at + c.extra["first_pass_s"]
+            if now - ready_at >= minutes * 60:
+                out.append(c)
+        return sorted(out, key=lambda c: c.created_at)
+
+    def reminder_md(self, cases: list[Case]) -> str | None:
+        if not cases:
+            return None
+        by: dict[str, list[Case]] = {}
+        for c in cases:
+            by.setdefault(c.extra.get("assignee") or "", []).append(c)
+        lines = [f"⏰ **{len(cases)} case(s) are waiting on a human verdict**"]
+        for who, cs in by.items():
+            names = ", ".join(f"{c.label} #{c.room_name}" for c in cs[:6]) + (" …" if len(cs) > 6 else "")
+            lines.append(f"• {'@' + who if who else 'unassigned'}: {names}")
+        return "\n".join(lines)
+
+    async def remind_loop(self) -> None:
+        """Post a reminder on the floor when cases pile up, at most once per interval, never twice the same."""
+        last = None
+        while True:
+            await asyncio.sleep(max(60, self.cfg.remind_minutes * 60))
+            try:
+                text = self.reminder_md(self.overdue(self.cfg.remind_minutes))
+                if text and text != last and self.state.rooms.get("floor"):
+                    await self.agent.post(self.state.rooms["floor"], text)
+                    last = text
+            except Exception:  # a reminder must never take the floor down
+                log.exception("reminder")
+
     # ── explanations ───────────────────────────────────────────────────────
 
     def explain_md(self, case: Case) -> str:

@@ -97,6 +97,7 @@ The verdict shows up on `#jury-floor` and at http://127.0.0.1:8787.
 | `doctor`: Switch not answering | Console → local server → Start. Check Docker Desktop is running. |
 | `doctor`: no registration token | Console's local server hasn't been set up on this Mac. Or set `SWITCH_URL` + `SWITCH_REGISTRATION_TOKEN` in `.env`. |
 | No Discord channels appear | Run `doctor`: is a messaging app listed? Check that channel creation is allowed on the Discord connection, and that the bot has **Manage Channels**. |
+| A judge stays "Queued. Waiting for the agent to start…" | Its provider isn't starting (an OpenCode backend with no model is the usual one). Console → Your Agents → that agent → delete it; Templates → **Jury critic** → Use → Claude Code → Create all; then `@jury-clerk summon` in the case room. |
 | Inspector or Critic never speaks in a case room | Check their sessions in Console. Say `@jury-inspector please start on this case` in the room to wake one by hand. |
 | A judge posted but Clerk didn't tally it | The scorecard needs a ```` ```jury ```` fenced JSON block. Ask the judge: "file your scorecard in the jury block format from the Rubric doc". |
 | Inspector asks for approval in the channel | That's Console's auto mode guarding untrusted code. Approve it or tell it to skip that step. It looks good on video. |

@@ -31,7 +31,7 @@ HELP = """**Jury Clerk** · how this floor works
 • Paste a GitHub repo link in **#{intake}** and I open a case room for it.
 • In a case room, judges post scorecards; I tally them and flag disagreements.
 • A human judge decides: `@{clerk} verdict shortlist 88 great use of rooms` (verdicts: {verdicts}; the score is optional).
-• `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} case 7` · `@{clerk} rescore` / `rescan` (in a case room) · `@{clerk} help`"""
+• `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} case 7` · `@{clerk} rescore` / `rescan` / `summon` (in a case room) · `@{clerk} help`"""
 
 INTAKE_INSTRUCTIONS = """This is the Jury intake room. People paste GitHub repository links of
 submissions here. The agent named {clerk} opens one case room per submission.
@@ -496,6 +496,13 @@ class Clerk:
             await self.refresh_floor()
         elif text.startswith(("reaudit", "re-audit")) and case:
             await self.agent.mention(case.room_id or "", [self.auditor_name], f"audit {case.url}")
+        elif text.startswith(("summon", "call")) and case:
+            added = await self.summon(case)
+            await self.agent.post(
+                room_id,
+                f"📣 Summoned {', '.join(added)} to this case." if added else "📣 Every judge on the bench is already in this case.",
+                thread,
+            )
         elif text.startswith(("rescan", "re-scan")) and case:
             found = await self.rescan(case)
             if found:
@@ -508,6 +515,42 @@ class Clerk:
                 HELP.format(intake=self.cfg.intake_room, clerk=self.name, verdicts=" / ".join(self.rubric.verdicts)),
                 thread,
             )
+
+    async def summon(self, case: Case) -> list[str]:
+        """Bring judges into an open case that it was opened without (a judge
+        created or re-created later), and kick them off there."""
+        judges = await self.present_judges()
+        expected = case.extra.setdefault("judges", [self.auditor_name])
+        try:
+            present = {p.get("name") for p in (await self.agent.room_op(case.room_id or "", "list_participants") or [])}
+        except SwitchError:
+            present = set(expected)
+        added = []
+        for j in judges:
+            if j in present and j in expected:
+                continue
+            if j not in present:
+                try:
+                    await self.agent.op("invite_agent_to_room", {"room_id": case.room_id, "agent_name": j})
+                except SwitchError as e:
+                    if e.status not in (400, 409):
+                        log.warning("invite %s: %s", j, e)
+                        continue
+            if j not in expected:
+                expected.append(j)
+            added.append(j)
+        if added:
+            if case.status == "scored":
+                case.status = "open"
+            await self.agent.mention(
+                case.room_id or "",
+                added,
+                f"⚖️ You're on the bench for **{case.label}: {case.url}**. Read the **Submission** and **Rubric** documents "
+                "in this room, review the repo, and file one scorecard for the criteria you own, in a ```jury block.",
+            )
+            await self.refresh_floor()
+            self._changed()
+        return added
 
     async def rescan(self, case: Case) -> list[str]:
         """Re-read the case room and count every judge's latest scorecard.

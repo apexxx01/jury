@@ -109,23 +109,39 @@ BENCH_TEMPLATE = Path(__file__).resolve().parent.parent / "templates" / "jury-be
 BENCH_NAME = "Jury bench"
 
 
-async def publish_bench(clerk: SwitchAgent) -> str:
-    """Save (or refresh) the judges' template in the server's library, so Console lists it."""
-    if not BENCH_TEMPLATE.exists():
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+LIBRARY = {
+    BENCH_NAME: (
+        "jury-bench.template.yaml",
+        "Jury's two LLM judges (Inspector on Claude Code, Critic on OpenCode or Codex) and a chambers room to meet them.",
+    ),
+    "Jury critic": (
+        "jury-critic.template.yaml",
+        "Just the Jury Critic, defaulting to Claude Code. Use it to swap the Critic's provider.",
+    ),
+}
+
+
+async def publish_template(clerk: SwitchAgent, name: str) -> str:
+    """Save (or refresh) one of Jury's templates in the server's library, so Console lists it."""
+    file, desc = LIBRARY[name]
+    path = TEMPLATES_DIR / file
+    if not path.exists():
         return "template file missing"
-    text = BENCH_TEMPLATE.read_text(encoding="utf-8")
-    desc = "Jury's two LLM judges (Inspector on Claude Code, Critic on OpenCode or Codex) and a chambers room to meet them."
+    text = path.read_text(encoding="utf-8")
     try:
-        existing = [
-            t for t in (await clerk.op("list_templates", {"query": BENCH_NAME}) or []) if t.get("name") == BENCH_NAME and t.get("can_edit")
-        ]
+        existing = [t for t in (await clerk.op("list_templates", {"query": name}) or []) if t.get("name") == name and t.get("can_edit")]
         if existing:
             await clerk.op("update_template", {"template_id": existing[0]["id"], "yaml": text, "description": desc})
             return "updated"
-        await clerk.op("save_template", {"name": BENCH_NAME, "description": desc, "yaml": text, "visibility": "shared"})
+        await clerk.op("save_template", {"name": name, "description": desc, "yaml": text, "visibility": "shared"})
         return "published"
     except SwitchError as e:
         return f"not published ({e.detail[:120]})"
+
+
+async def publish_bench(clerk: SwitchAgent) -> str:
+    return await publish_template(clerk, BENCH_NAME)
 
 
 def snapshot(state: State, rubric: scoring.Rubric, cfg: config.Config) -> dict[str, Any]:
@@ -170,6 +186,7 @@ async def cmd_up(cfg: config.Config, args: argparse.Namespace) -> None:
     if missing:
         print(f"  template '{BENCH_NAME}': {await publish_bench(clerk_agent)}")
         print(f"  ⚠ not on this server yet: {', '.join(missing)}. In Switch Console: Templates → '{BENCH_NAME}' → Create.")
+    print(f"  template 'Jury critic': {await publish_template(clerk_agent, 'Jury critic')}")
 
     tasks = [
         asyncio.create_task(clerk_agent.run(clerk.handle), name="clerk"),

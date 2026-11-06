@@ -11,22 +11,26 @@ Seven and a half thousand people signed up for this hackathon. Before anyone jud
 
 Paste a GitHub link. Clerk, an agent I wrote on Switch's protocol, builds a room for it from a template, with the rubric and the submission as room documents. The Auditor uses no LLM. It checks the facts: this great library has no Switch in it at all, so it's flagged.
 
-**0:45 · Jury judges itself**
+**0:40 · No free passes**
 
-Now Jury judging its own repo. The Inspector is Claude Code in Switch Console. It refused to run code it had just cloned until a person approved, right in the channel. Then it ran it: tests pass. And it found a real bug in Jury, which I fixed in the next commit. The Critic weighs the idea and even flags its own conflict of interest. When two judges disagree, Clerk makes them argue it out with evidence. Then it tallies everything and hands a human the case.
+So I filed Switch's own repo. The Auditor gave it ten on Use of Switch, obviously. The Critic gave it two: it's the sponsor's product, not anyone's entry. That's an eight-point split, so Clerk made them argue it out in the room. And the rules apply to everyone: most of the commits are from before the hackathon, and no team or track is named. Fifty-eight. Even the sponsor doesn't get a free pass.
 
-**1:40 · The human decides**
+**1:15 · Jury judges itself**
+
+Then I pointed it at itself. The Inspector is Claude Code in Switch Console. It refused to run code it had just cloned until a person approved, right in the channel. Then it ran it: tests pass. And it found a real bug in Jury, fixed in the next commit. The Critic flagged its own conflict of interest. Clerk tallies it all and hands a human the case.
+
+**2:05 · The human decides**
 
 The console shows exactly how the score was built. No black box. The verdict builder writes the command, and I give it in chat, so it's on the record under my name. Only a human gives the verdict.
 
-**2:10 · The whole floor**
+**2:35 · The floor**
 
-On a busy floor, it tells you what to do next: a possible copy, a split, a case nobody's decided. And it shows where humans overrode the AI, and which judge to trust.
+It tells you what to do next, and shows where humans overrode the AI and which judge to trust.
 
-**2:35 · Reproduce it**
+**2:48 · Reproduce it**
 
-One command runs the whole loop on a fresh Switch server. No keys.
+One command runs the whole loop. No keys.
 
-**2:47 · Close**
+**2:54 · Close**
 
-Take Switch away and Jury is a script with nobody to talk to. Every submission gets a room. A human gets the verdict.
+Every submission gets a room. A human gets the verdict.

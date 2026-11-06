@@ -140,7 +140,7 @@ most of it Docker and chat-app setup; [`docs/RUNBOOK.md`](docs/RUNBOOK.md) walks
 | a GitHub link | `#jury-intake` | a case room opens (duplicates are caught) |
 | `@jury-clerk verdict shortlist 88 note` | a case room | the verdict is recorded. The score is optional and overrides the panel's |
 | `@jury-clerk leaderboard` / `status` / `case 7` | anywhere | the ranking, counts, or one case |
-| `@jury-clerk rescore` / `reaudit` | a case room | recount, or have the Auditor re-clone after a fix |
+| `@jury-clerk rescore` / `rescan` / `reaudit` | a case room | recount, re-read the room for scorecards Clerk missed, or have the Auditor re-clone after a fix |
 | `@jury-auditor evidence` | a case room | every fact it checked |
 
 ### On the command line

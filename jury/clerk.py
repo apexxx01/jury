@@ -31,7 +31,7 @@ HELP = """**Jury Clerk** · how this floor works
 • Paste a GitHub repo link in **#{intake}** and I open a case room for it.
 • In a case room, judges post scorecards; I tally them and flag disagreements.
 • A human judge decides: `@{clerk} verdict shortlist 88 great use of rooms` (verdicts: {verdicts}; the score is optional).
-• `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} case 7` · `@{clerk} rescore` (in a case room) · `@{clerk} help`"""
+• `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} case 7` · `@{clerk} rescore` / `rescan` (in a case room) · `@{clerk} help`"""
 
 INTAKE_INSTRUCTIONS = """This is the Jury intake room. People paste GitHub repository links of
 submissions here. The agent named {clerk} opens one case room per submission.
@@ -496,12 +496,46 @@ class Clerk:
             await self.refresh_floor()
         elif text.startswith(("reaudit", "re-audit")) and case:
             await self.agent.mention(case.room_id or "", [self.auditor_name], f"audit {case.url}")
+        elif text.startswith(("rescan", "re-scan")) and case:
+            found = await self.rescan(case)
+            if found:
+                await self.agent.post(room_id, f"🔁 Re-read this room: picked up {', '.join(found)}.", thread)
+            else:
+                await self.agent.post(room_id, "🔁 Re-read this room: no scorecards I hadn't already counted.", thread)
         else:
             await self.agent.post(
                 room_id,
                 HELP.format(intake=self.cfg.intake_room, clerk=self.name, verdicts=" / ".join(self.rubric.verdicts)),
                 thread,
             )
+
+    async def rescan(self, case: Case) -> list[str]:
+        """Re-read the case room and count every judge's latest scorecard.
+
+        For scorecards that arrived in a shape an older Clerk couldn't parse,
+        or while Clerk was down. Threads included; newest per judge wins.
+        """
+        res = await self.agent.op("read_context", {"room_id": case.room_id, "limit": 200})
+        latest: dict[str, tuple[int, dict[str, Any], str | None]] = {}
+        for t in (res or {}).get("threads", []):
+            for m in [t.get("root") or {}, *(t.get("replies") or [])]:
+                sender = m.get("on_behalf_of") or m.get("sender_name") or ""
+                if sender == self.name or not await self._is_agent(sender):
+                    continue
+                card = scoring.parse_scorecard(m.get("body") or "", self.rubric)
+                if not card:
+                    continue
+                ts = int(m.get("timestamp") or 0)
+                if sender not in latest or ts >= latest[sender][0]:
+                    latest[sender] = (ts, card, m.get("id"))
+        picked = []
+        for judge, (_, card, mid) in latest.items():
+            have = case.scorecards.get(judge)
+            if have and have.get("message_id") == mid:
+                continue
+            await self._record_scorecard(case, judge, card, mid)
+            picked.append(judge)
+        return picked
 
     def _label(self, cid: str) -> str:
         c = self.rubric.get(cid)

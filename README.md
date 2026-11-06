@@ -169,8 +169,10 @@ Jury smoke test · https://github.com/psf/requests
   ✓ the whole loop works
 ```
 
-Unit tests: `uv run pytest` (scorecard and verdict parsing, scoring arithmetic, the Auditor against fixture
-repos, state).
+Unit tests: `uv run pytest`, 37 of them, covering the protocol client against a fake Switch server (SSE
+parsing, reconnect with the same connection id and `Last-Event-ID`, room claims, catch-up), scorecard and
+verdict parsing, the scoring arithmetic, the Auditor against fixture repos, Console discovery and state. CI
+runs them with ruff on every push.
 
 ## How scoring works
 

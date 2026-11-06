@@ -156,7 +156,7 @@ already happened, with evidence, in the same thread.
 Judges will clone this repo, so it had to run without my laptop's Claude and Codex logins. There are scripted
 stand-in judges (`scripts/stand_in_judges.py`) and a smoke test (`scripts/smoke.py`) that drive the whole loop
 against any Switch server: intake, case room, three scorecards, a human verdict posted through the Gateway,
-leaderboard. Then it checks the result. Plus 28 unit tests for the parsing and the arithmetic.
+leaderboard. Then it checks the result. Plus 37 unit tests, including the protocol client against a fake Switch server.
 
 ## What I'd tell a first-time Switch builder
 

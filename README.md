@@ -241,6 +241,7 @@ most of it Docker and chat-app setup; [`docs/RUNBOOK.md`](docs/RUNBOOK.md) walks
 | `@jury-clerk my queue` · `assign 7 to @ben` | anywhere | a human judge's pile · hand a case to someone |
 | `@jury-clerk explain 7` · `calibration` | anywhere | how a score was computed · which AI judge leans generous or harsh |
 | `@jury-clerk close intake` · `open intake` | anywhere | stop or resume new filings |
+| `@jury-clerk withdraw 7 <why>` | anywhere (or `withdraw <why>` in its room) | take a case off the floor: a duplicate, spam, a team pulling out. It's kept on record and the repo can be filed again |
 | `@jury-clerk feedback` | a case room | preview what the participant would be sent |
 | `@jury-clerk reopen` · `reopen 7` | a case room · anywhere | set a verdict aside (kept on record) so a human decides again |
 | `appeal <why>` | the submission's intake thread | the verdict is set aside and the case goes back to its judge |

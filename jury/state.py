@@ -92,6 +92,7 @@ class State:
     cases: dict[str, Case] = field(default_factory=dict)  # key -> case
     seen: list[str] = field(default_factory=list)  # message ids already handled
     intake_closed: bool = False
+    withdrawn: list[dict[str, Any]] = field(default_factory=list)  # cases taken off the floor, kept on record
 
     @classmethod
     def load(cls, path: Path) -> State:
@@ -106,6 +107,7 @@ class State:
             floor_doc_id=raw.get("floor_doc_id"),
             floor_doc_hash=raw.get("floor_doc_hash"),
             intake_closed=bool(raw.get("intake_closed", False)),
+            withdrawn=raw.get("withdrawn", []),
             cases=cases,
             seen=raw.get("seen", [])[-2000:],
         )
@@ -118,6 +120,7 @@ class State:
             "floor_doc_id": self.floor_doc_id,
             "floor_doc_hash": self.floor_doc_hash,
             "intake_closed": self.intake_closed,
+            "withdrawn": self.withdrawn,
             "cases": {k: asdict(v) for k, v in self.cases.items()},
             "seen": self.seen[-2000:],
         }
@@ -140,7 +143,9 @@ class State:
         return True
 
     def next_number(self) -> int:
-        return max((c.number for c in self.cases.values()), default=0) + 1
+        # numbers are never reused, so a withdrawn case's room name stays its own
+        used = [c.number for c in self.cases.values()] + [int(w.get("number", 0)) for w in self.withdrawn]
+        return max(used, default=0) + 1
 
     def by_room(self, room_id: str | None) -> Case | None:
         return next((c for c in self.cases.values() if c.room_id == room_id), None)

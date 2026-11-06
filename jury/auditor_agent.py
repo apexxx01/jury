@@ -136,6 +136,10 @@ class AuditorAgent:
                 except SwitchError as e:
                     log.warning("auditor doc: %s", e)
 
+    def forget(self, key: str) -> None:
+        """A withdrawn case stops counting in the copy check."""
+        self.index.drop(key)
+
     def _label_for(self, key: str) -> str:
         case = self.case_by_key(key) if self.case_by_key else None
         if case is None:

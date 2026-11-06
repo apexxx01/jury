@@ -129,6 +129,10 @@ class FingerprintIndex:
         self.data[key.lower()] = {"lines": lines, "commits": commits}
         self.save()
 
+    def drop(self, key: str) -> None:
+        if self.data.pop(key.lower(), None) is not None:
+            self.save()
+
     def compare(self, key: str) -> list[Match]:
         """Other cases that look like copies of ``key``, worst first."""
         key = key.lower()

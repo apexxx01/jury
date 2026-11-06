@@ -32,7 +32,7 @@ HELP = """**Jury Clerk** · how this floor works
 • Paste a GitHub repo link in **#{intake}** and I open a case room for it. Reply `appeal <why>` in that thread to appeal a verdict.
 • In a case room, judges post scorecards; I tally them and flag disagreements.
 • A human judge decides: `@{clerk} verdict shortlist 88 great use of rooms` (verdicts: {verdicts}; the score is optional).
-• `@{clerk} explain 7` · `@{clerk} calibration` · `@{clerk} reopen 7` (set a verdict aside) · `@{clerk} close intake` / `open intake`
+• `@{clerk} explain 7` · `@{clerk} calibration` · `@{clerk} reopen 7` (set a verdict aside) · `@{clerk} withdraw 7 <why>` (take a case off the floor) · `@{clerk} close intake` / `open intake`
 • `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} stats` · `@{clerk} my queue` · `@{clerk} assign 7 to @name` · `@{clerk} case 7` · `@{clerk} rescore` / `rescan` / `summon` (in a case room) · `@{clerk} help`"""
 
 INTAKE_INSTRUCTIONS = """This is the Jury intake room. People paste GitHub repository links of
@@ -74,6 +74,7 @@ class Clerk:
         self._doc_dirty = False
         self.doc_debounce = 45.0
         self._creator_unlinked = False
+        self.on_withdraw: list[Any] = []  # callbacks(key) when a case leaves the floor
 
     @property
     def name(self) -> str:
@@ -653,6 +654,15 @@ class Clerk:
             await self.agent.post(self.state.rooms["intake"], "🚪 **Intake is open again.** Paste a repo link to file it.")
             if room_id != self.state.rooms["intake"]:
                 await self.agent.post(room_id, "Intake open.", thread)
+        elif m := re.match(r"(?:withdraw|remove|drop)\b(?:\s*(?:case\s*)?#?(\d+))?\s*(.*)", text):
+            who = p.get("on_behalf_of") or p.get("sender_name") or "someone"
+            c = self.state.by_number(int(m.group(1))) if m.group(1) else case
+            if await self._is_agent(who):
+                await self.agent.post(room_id, "Only a human judge can withdraw a case.", thread)
+            elif not c:
+                await self.agent.post(room_id, "Which case? `withdraw 7 <why>`, or say `withdraw <why>` in its room.", thread)
+            else:
+                await self.withdraw(c, who, m.group(2).strip(), room_id, thread)
         elif m := re.match(r"(?:reopen|undo verdict|set aside)\b(?:\s*(?:case\s*)?#?(\d+))?", text):
             who = p.get("on_behalf_of") or p.get("sender_name") or "someone"
             c = self.state.by_number(int(m.group(1))) if m.group(1) else case
@@ -824,6 +834,39 @@ class Clerk:
         if room_id and room_id != case.room_id:
             await self.agent.post(room_id, msg, thread)
         await self.refresh_floor(note=f"↩️ **{case.label}** `{case.owner}/{case.repo}` reopened by {who}")
+        self._changed()
+
+    async def withdraw(self, case: Case, who: str, reason: str = "", room_id: str | None = None, thread: str | None = None) -> None:
+        """A human takes a case off the floor: a duplicate, spam, a team pulling out. It stays on record and the repo can be filed again."""
+        self.state.withdrawn.append(
+            {
+                "number": case.number,
+                "owner": case.owner,
+                "repo": case.repo,
+                "room_name": case.room_name,
+                "by": who,
+                "reason": reason,
+                "at": time.time(),
+                "verdict": case.verdict,
+                "provisional": case.provisional,
+            }
+        )
+        self.state.cases.pop(case.key, None)
+        for cb in self.on_withdraw:
+            try:
+                cb(case.key)
+            except Exception:  # a callback must never block a withdrawal
+                log.exception("on_withdraw")
+        msg = (
+            f"🗑️ **{case.label} `{case.owner}/{case.repo}` withdrawn by {who}.**"
+            + (f" Reason: {reason}." if reason else "")
+            + (" It's off the floor and kept on record. The repo can be filed again.")
+        )
+        if case.room_id:
+            await self.agent.post(case.room_id, msg, thread if room_id == case.room_id else None)
+        if room_id and room_id != case.room_id:
+            await self.agent.post(room_id, msg, thread)
+        await self.refresh_floor(note=f"🗑️ **{case.label}** `{case.owner}/{case.repo}` withdrawn by {who}")
         self._changed()
 
     def queue_md(self, who: str) -> str:

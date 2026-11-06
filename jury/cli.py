@@ -197,6 +197,7 @@ def snapshot(state: State, rubric: scoring.Rubric, cfg: config.Config, judges_pr
         },
         "settings": {
             "intake_closed": state.intake_closed,
+            "withdrawn": len(state.withdrawn),
             "window_start": cfg.window_start.isoformat(),
             "window_end": cfg.window_end.isoformat(),
             "enforce_deadline": cfg.enforce_deadline,
@@ -225,6 +226,7 @@ async def cmd_up(cfg: config.Config, args: argparse.Namespace) -> None:
     aud = AuditorAgent(cfg, rubric, auditor_agent)
     aud.lookup = state.by_room
     aud.case_by_key = lambda k: state.cases.get(k.lower())
+    clerk.on_withdraw.append(aud.forget)
 
     judges = await clerk.present_judges()
     missing = [j for j in cfg.judges if j not in judges]

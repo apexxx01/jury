@@ -235,3 +235,27 @@ async def test_reopen_intake_is_still_intake(clerk):
     clerk.state.intake_closed = True
     await clerk._command("R-floor", {"sender_name": "asha"}, "@jury-clerk reopen intake", None)
     assert clerk.state.intake_closed is False
+
+
+async def test_withdraw_takes_a_case_off_the_floor_and_frees_the_repo(clerk):
+    add(clerk, 1)
+    add(clerk, 2)
+    forgotten = []
+    clerk.on_withdraw.append(forgotten.append)
+    await clerk._command("R-floor", {"sender_name": "asha", "message_id": "x"}, "@jury-clerk withdraw 2 duplicate entry", None)
+    assert "o/r2" not in clerk.state.cases and forgotten == ["o/r2"]
+    (w,) = clerk.state.withdrawn
+    assert w["number"] == 2 and w["by"] == "asha" and w["reason"] == "duplicate entry"
+    assert any("withdrawn by asha" in b for _, b in clerk.agent.posts)
+    # numbers are never reused, so a refiled repo gets a fresh room name
+    assert clerk.state.next_number() == 3
+    clerk.state.save()
+    from jury.state import State
+
+    assert State.load(clerk.state.path).withdrawn[0]["repo"] == "r2"
+
+
+async def test_agents_cannot_withdraw(clerk):
+    add(clerk, 1)
+    await clerk._command("R-floor", {"sender_name": "jury-critic", "message_id": "x"}, "@jury-clerk withdraw 1", None)
+    assert "o/r1" in clerk.state.cases

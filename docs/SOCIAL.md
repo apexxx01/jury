@@ -9,6 +9,9 @@ OpenCode gather evidence and argue → a human gives the verdict. A live console
 
 Try it with no setup: uv run jury demo
 
+Try it live: https://apexxx01.github.io/jury/
+How I built it: https://dev.to/apexdoesstuff/i-built-the-thing-that-judges-hackathons-then-made-it-judge-itself-327o
+
 #HowISwitch @WeMakeDevs [demo video link]
 
 ## LinkedIn
@@ -29,6 +32,9 @@ For the Flip the Switch hackathon I built **Jury**, a judging floor that runs in
 Two of the agents I wrote from scratch on Switch's raw SSE/HTTP protocol. Swap one rubric file and it reviews
 hiring take-homes instead.
 
-Repo + demo: [link]
+Try the console live: https://apexxx01.github.io/jury/
+Repo: https://github.com/apexxx01/jury
+How I built it: https://dev.to/apexdoesstuff/i-built-the-thing-that-judges-hackathons-then-made-it-judge-itself-327o
+Demo video: [video link]
 
 #HowISwitch #FlipTheSwitch #AIagents #opensource

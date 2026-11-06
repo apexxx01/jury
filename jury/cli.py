@@ -102,7 +102,9 @@ async def publish_bench(clerk: SwitchAgent) -> str:
     text = BENCH_TEMPLATE.read_text(encoding="utf-8")
     desc = "Jury's two LLM judges (Inspector on Claude Code, Critic on Codex) and a chambers room to meet them."
     try:
-        existing = [t for t in (await clerk.op("list_templates", {"query": BENCH_NAME}) or []) if t.get("name") == BENCH_NAME and t.get("can_edit")]
+        existing = [
+            t for t in (await clerk.op("list_templates", {"query": BENCH_NAME}) or []) if t.get("name") == BENCH_NAME and t.get("can_edit")
+        ]
         if existing:
             await clerk.op("update_template", {"template_id": existing[0]["id"], "yaml": text, "description": desc})
             return "updated"
@@ -114,7 +116,7 @@ async def publish_bench(clerk: SwitchAgent) -> str:
 
 def snapshot(state: State, rubric: scoring.Rubric, cfg: config.Config) -> dict[str, Any]:
     cases = []
-    for rank, c in enumerate(state.ranked(), 1):
+    for rank, c in enumerate(state.ranked(rubric.verdicts), 1):
         d = asdict(c)
         d.update(rank=rank, label=c.label, url=c.url, final=c.final)
         d.pop("extra", None)
@@ -300,7 +302,7 @@ async def cmd_export(cfg: config.Config, args: argparse.Namespace) -> None:
         with open(args.csv, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(["rank", "case", "repo", "status", "verdict", "final", "provisional", *means_cols, "judge", "note", "red_flags"])
-            for c in state.ranked():
+            for c in state.ranked(rubric.verdicts):
                 means = scoring.criterion_means(c.scorecards, rubric)
                 w.writerow(
                     [

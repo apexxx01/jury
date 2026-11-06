@@ -142,12 +142,18 @@ class State:
     def by_number(self, n: int) -> Case | None:
         return next((c for c in self.cases.values() if c.number == n), None)
 
-    def ranked(self) -> list[Case]:
-        """Decided cases and full panels first, then partial ones; by score within each."""
+    def ranked(self, verdicts: list[str] | None = None) -> list[Case]:
+        """Best verdicts first, then undecided (full panels before partial), rejections last.
+
+        With ``shortlist, maybe, pass``: shortlist, maybe, undecided, partial, pass.
+        Within a tier, by score.
+        """
+        order = verdicts or ["shortlist", "maybe", "pass"]
 
         def tier(c: Case) -> int:
             if c.verdict:
-                return 0
-            return 1 if c.complete else 2
+                i = order.index(c.verdict["decision"]) if c.verdict.get("decision") in order else len(order) - 1
+                return i if i < len(order) - 1 else len(order) + 1
+            return len(order) - 1 if c.complete else len(order)
 
         return sorted(self.cases.values(), key=lambda c: (tier(c), -(c.final if c.final is not None else -1), c.number))

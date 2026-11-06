@@ -119,6 +119,10 @@ def test_state_roundtrip_and_ranking(tmp_path):
     st.save()
     st2 = State.load(tmp_path / "s.json")
     assert [x.number for x in st2.ranked()] == [3, 2, 1, 4]
+    st2.by_number(2).verdict = {"decision": "pass", "score": 99}
+    st2.by_number(1).verdict = {"decision": "maybe", "score": 10}
+    # shortlist, maybe, undecided partial, pass (whatever its score)
+    assert [x.number for x in st2.ranked()] == [3, 1, 4, 2]
     assert st2.by_number(2).repo == "y"
     assert oct((tmp_path / "s.json").stat().st_mode & 0o777) == "0o600"
 

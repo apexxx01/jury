@@ -63,7 +63,9 @@ def main() -> None:
     case = wait(lambda s: s["cases"].get(key) if s["cases"].get(key, {}).get("room_id") else None, "case room opened", 60)
     print(f"    room #{case['room_name']}")
     wait(lambda s: s["cases"][key] if "jury-auditor" in s["cases"][key]["scorecards"] else None, "auditor scorecard filed", a.timeout)
-    case = wait(lambda s: s["cases"][key] if s["cases"][key]["status"] in ("scored", "decided") else None, "every judge's scorecard in", a.timeout)
+    case = wait(
+        lambda s: s["cases"][key] if s["cases"][key]["status"] in ("scored", "decided") else None, "every judge's scorecard in", a.timeout
+    )
     print(f"    provisional {case['provisional']}/100 from {', '.join(case['scorecards'])}")
 
     base = config.load().switch_url
@@ -72,7 +74,10 @@ def main() -> None:
         r.raise_for_status()
         me = r.json().get("id")
         c.post(f"/gateway/chats/{case['room_id']}/members", json={"user_id": me})
-        r = c.post(f"/gateway/chats/{case['room_id']}/messages", json={"body": "@jury-clerk verdict maybe 61 smoke test", "request_id": os.urandom(8).hex()})
+        r = c.post(
+            f"/gateway/chats/{case['room_id']}/messages",
+            json={"body": "@jury-clerk verdict maybe 61 smoke test", "request_id": os.urandom(8).hex()},
+        )
         r.raise_for_status()
     case = wait(lambda s: s["cases"][key] if s["cases"][key]["status"] == "decided" else None, "human verdict recorded", 60)
     assert case["verdict"]["decision"] == "maybe" and case["verdict"]["score"] == 61, case["verdict"]

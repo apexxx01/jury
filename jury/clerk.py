@@ -321,6 +321,20 @@ class Clerk:
             card = scoring.parse_scorecard(body, self.rubric)
             if card:
                 await self._record_scorecard(case, sender, card, p.get("message_id"))
+            elif await self._needs_nudge(case, sender, body):
+                await self.agent.mention(
+                    case.room_id or "",
+                    [sender],
+                    (
+                        "your ```jury block didn't parse as JSON. "
+                        if "```jury" in body
+                        else "thanks, but I couldn't find a scorecard in that. "
+                    )
+                    + "End a message with one fenced block tagged "
+                    '`jury`: ```jury {"scores": {...}, "notes": {...}, "summary": "..."}``` with the criteria the '
+                    "Rubric document assigns you, 0 to 10.",
+                    p.get("message_id"),
+                )
             return
         if self._addressed_to_me(p, body) or re.match(r"\s*verdict\b", body, re.IGNORECASE):
             verdict = scoring.parse_verdict(body, self.rubric)
@@ -329,6 +343,18 @@ class Clerk:
                 return
             if self._addressed_to_me(p, body):
                 await self._command(case.room_id or "", p, body, case)
+
+    async def _needs_nudge(self, case: Case, judge: str, body: str) -> bool:
+        """A judge on this case wrote a long report with no scorecard and hasn't filed one: nudge once."""
+        if judge not in (case.extra.get("judges") or []) or judge == self.auditor_name or judge in case.scorecards:
+            return False
+        if len(body) < 400 and "```jury" not in body:
+            return False
+        nudged = case.extra.setdefault("nudged", [])
+        if judge in nudged:
+            return False
+        nudged.append(judge)
+        return True
 
     # ── scorecards and verdicts ────────────────────────────────────────────
 
@@ -414,7 +440,7 @@ class Clerk:
         case.status = "decided"
         case.updated_at = time.time()
         final = case.final
-        rank = next((i for i, c in enumerate(self.state.ranked(), 1) if c.key == case.key), None)
+        rank = next((i for i, c in enumerate(self.state.ranked(self.rubric.verdicts), 1) if c.key == case.key), None)
         override = verdict.get("score") is not None and case.provisional is not None and abs(verdict["score"] - case.provisional) >= 0.05
         await self.agent.post(
             case.room_id or "",
@@ -490,7 +516,7 @@ class Clerk:
         return "\n".join(lines)
 
     def leaderboard_md(self, limit: int = 50) -> str:
-        ranked = self.state.ranked()
+        ranked = self.state.ranked(self.rubric.verdicts)
         if not ranked:
             return "The floor is empty. Paste a repo link in #" + self.cfg.intake_room + "."
         lines = [f"**🏛️ Jury leaderboard · {self.rubric.name}**", "```"]

@@ -340,10 +340,10 @@ class SwitchAgent:
     async def _catch_up(self, room_id: str, handler: Handler, window_ms: int = 120_000) -> None:
         """Replay what was said in a room just before we covered it.
 
-        A room an agent is added to reaches its stream a moment later, and a
-        kickoff posted in that moment would otherwise never be seen. Handlers
-        dedupe by message id, so replaying something already delivered is
-        harmless.
+        The protocol docs warn that a room covered after catch-up has its
+        buffered events skipped. Re-reading the last couple of minutes when a
+        room joins the stream closes that gap. Handlers dedupe by message id,
+        so replaying something already delivered is harmless.
         """
         await asyncio.sleep(0.5)
         try:

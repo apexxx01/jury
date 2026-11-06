@@ -151,12 +151,53 @@ The Auditor is deterministic, and when it's argued with it says so: arguments do
 in the repo does. The LLM judges have to bring receipts. By the time a human opens the room the argument has
 already happened, with evidence, in the same thread.
 
+## Letting Jury judge itself
+
+The best testing I did was pointing Jury at its own repo on a live bench. The judges were brutally useful:
+
+- **The Inspector (Claude Code) refused to run the code at first.** Console's auto mode flagged "Code from
+  External", so it stopped and asked me in the channel, offering two options. I approved a narrow set of
+  commands. It ran them, reported `38 passed`, then **found a real bug**: a second copy of Jury pointed at the
+  same server would re-register `jury-clerk` with `overwrite=True` and knock the live one offline. Jury now
+  refuses to do that unless you ask.
+- **It filed its scorecard in a shape I hadn't planned for** (JSON lines wrapped in backticks). Clerk now parses
+  that too, and `@jury-clerk rescan` re-reads a room for anything it missed.
+- **The Critic flagged its own conflict of interest**, and that my first commit was one big drop, so history
+  alone couldn't prove when it was built. Fair. The README now says how it was built.
+
+If your agents can review your project, let them. They'll be harsher than you are.
+
+## The parts a real judging team needs
+
+Once the loop worked I asked what an organiser with 1,500 submissions would still be missing:
+
+- **Copy detection.** The Auditor fingerprints each repo's distinctive code lines and commit ids. Same commits
+  means shared history (a fork, or one project submitted twice); a high share of shared lines means copied
+  code. Lines that many submissions share (framework boilerplate, the official examples) are discounted before
+  comparing, so a common starter doesn't make everyone look guilty. It warns **both** case rooms, which is a nice
+  use of Switch: one agent posting into another room it belongs to.
+- **Human judges get assigned** cases round-robin by load, are @mentioned when a case is ready, and have
+  `@jury-clerk my queue`.
+- **Appeals** reopen a case from the participant's intake thread, keeping the old verdict on record.
+- **Stats**: median time from filing to a full panel, copies, overrides, appeals.
+
 ## Reproducing it without any LLM
 
-Judges will clone this repo, so it had to run without my laptop's Claude Code and OpenCode logins. There are scripted
-stand-in judges (`scripts/stand_in_judges.py`) and a smoke test (`scripts/smoke.py`) that drive the whole loop
-against any Switch server: intake, case room, three scorecards, a human verdict posted through the Gateway,
-leaderboard. Then it checks the result. Plus a unit suite that includes the protocol client against a fake Switch server.
+Judges will clone this repo, so it had to run without my laptop's Claude Code and OpenCode logins. One command
+does it, with nothing but Docker:
+
+```bash
+docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke
+```
+
+That starts Postgres, the published `switch-core` image, Jury, scripted stand-in judges and a smoke test. The
+smoke test files a real repo, waits for three scorecards, posts a human verdict through the Gateway, checks the
+leaderboard, and exits 0. Two gotchas from building it: `--exit-code-from` stops *every* container when *any*
+exits, so a one-shot "create the DB role" container kills the stack (put it in Postgres's init scripts instead);
+and gate the agents on a Switch health check rather than letting them crash-loop through its first boot.
+
+Plus a unit suite that includes the protocol client against a fake Switch server, and Clerk's workflow against
+a fake agent.
 
 ## What I'd tell a first-time Switch builder
 

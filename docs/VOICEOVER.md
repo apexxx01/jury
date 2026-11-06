@@ -1,51 +1,48 @@
-# Voice-over script (about 5:30, read at a calm pace)
+# Voice-over (about 4:45 with pauses, read at a calm pace)
 
-Each block is one scene. Times are from the start of the video. Pause a beat between scenes.
+One block per scene in [`DEMO.md`](DEMO.md); the times match. About 145 words a minute. Pause a beat between
+scenes, and let the screen breathe where a line is short.
 
-**0:00 · Open**
+**0:00 · Open** (console headline)
 
-Jury: a hackathon judging floor that runs in your team chat, built on Switch.
+Flip the Switch had seven and a half thousand people register. If one in five submits, that's fifteen hundred repos. Five minutes each just to clone it, check it runs and find the video, and you've spent a hundred and twenty-five hours before anyone judges anything. This is Jury: a judging floor that runs in your team chat, on Switch.
 
-**0:08 · The problem**
+**0:25 · The pipeline**
 
-Flip the Switch had 7,516 people register. If one in five submits, that's about 1,500 repos to clone, run and check. At five minutes each, that's 125 hours before anyone judges anything.
+Every submission moves through five stages. It's filed. A deterministic Auditor checks the facts. Two AI judges, one running the code and one weighing the idea, score it and argue when they disagree. Then it waits for a human, because only a human gives the verdict.
 
-**0:25 · How it works**
+**0:45 · Intake**
 
-Paste a repo link in chat. Clerk opens a dedicated room for that submission. Three AI judges gather evidence in that room and argue it out in the open. A human gives the verdict. It lands on the judging floor and a live leaderboard.
+Someone pastes a GitHub link in the intake channel. Clerk, an agent I wrote directly on Switch's protocol, opens a dedicated room for it. The room is built from a YAML template, with its own instructions, the rubric and the submission as room documents, and it's linked to the judging floor.
 
-**0:49 · Intake**
+**1:07 · The Auditor**
 
-Someone drops a submission link in #jury-intake. Clerk, an agent written directly on Switch's protocol, opens a case room. The room is built from a YAML template: its own instructions, the rubric and the submission as room documents, linked to the floor.
+The Auditor uses no LLM. It clones the repo and checks hard facts. Here's a great library: sixteen hundred commits, almost two hundred authors, and no Switch in it at all. That breaks the rule, so it's flagged. It also checks the commit window and scans for leaked keys. Every fact goes into a room document the other judges can cite.
 
-**1:13 · The Auditor**
+**1:33 · Copy check**
 
-The kickoff wakes the judges through Switch's addressing. The Auditor uses no LLM. It clones the repo and checks hard facts. A great library with 1,600 commits from 199 people, but no Switch in it at all. The rule gets flagged. Every fact lands in a room document the other judges can cite.
+Now the same project, filed twice under two names. The Auditor fingerprints every submission, its git history and its code, and ignores boilerplate everyone shares. It warns both rooms. It flags; a human decides.
 
-**1:43 · Copy check**
+**1:49 · Jury judges itself**
 
-Someone files the same project twice, under its old name. The Auditor fingerprints every submission: shared git history and shared code. Boilerplate everyone uses doesn't count. It warns the earlier case's room too, so those judges see it without looking. It flags; a human decides.
+Now the real test: Jury judging its own repo, on a live bench. The Inspector is Claude Code, running through Switch Console. Console's auto mode stopped it from running code it had just cloned, so it asked a person, right here in the channel. I approved, with limits. It actually ran it: the tests pass, lint is clean. And it found a real bug in Jury. A second copy would hijack the live Clerk. Fixed in the next commit, credited to the Inspector. The Critic judges the idea, the impact and whether Switch is central, and it even flags its own conflict of interest: the bench is judging the repo its instructions come from. Clerk reads every scorecard out of the room and tallies it live. When the panel's complete, it hands a human the case file.
 
-**2:11 · Jury judges itself**
+**2:47 · The human decides**
 
-Now the real test: Jury judging its own repo, on a live bench. The Inspector is Claude Code, running through Switch Console. Console's auto mode stopped it from running code it had just cloned, so it asked a human, right in the channel. A person approves, with limits. It actually ran it: 38 tests pass, lint clean. And it found a real bug in Jury: a second copy would hijack the live Clerk. Fixed in the next commit, credited to the Inspector. Clerk reads every scorecard out of the room and tallies it live. The Critic judges the idea, the impact, and whether Switch is central. It even flags its own conflict of interest. When the panel is complete, Clerk hands a human the case file.
+Here's that case file in the console. The score receipt shows the arithmetic: each criterion, which judges scored it, the mean and the weight. No black box. The verdict builder writes the command for me. Shortlist, ninety, a note. I paste it in the room, so the verdict is on the record in Switch under my name. Clerk records it and tells me the rank, and the console updates on its own.
 
-**3:37 · The human decides**
+**3:19 · The whole floor**
 
-Agents gather evidence and argue. Only a human gives the verdict. The score is optional and can override the panel's. Both are kept on record.
+This is a busier floor: twelve sample cases. Up top, what needs attention: a possible copy, two judges who disagree by five points, cases nobody has decided yet. The score distribution against the shortlist bar. Every dot here is a decided case, the AI panel's score against the human's, so you can see where people overrode the machine. A timeline of every case, from filing to verdict. And the bench: which judge owns which criterion, how fast each one replies, and how generous each is compared with the humans.
 
-**3:59 · The floor**
+**3:59 · Built for a real team**
 
-Every verdict lands on the judging floor and on a live leaderboard. Per-criterion scores against the event's own rubric, red flags, copies and verdicts in one place. Median time from filing to a full panel: the number an organiser actually cares about.
+It's built for an organiser at fifteen hundred submissions: assigned judges, reminders, appeals, bulk import, a results write-up, and stats and calibration in chat.
 
-**4:25 · Reproduce it**
+**4:11 · Reproduce it**
 
-Anyone can check it. One command runs the whole loop on a fresh Switch server. No Console, no chat app, no API keys. Stand-in judges, a human verdict through the Gateway, then a check. Exit code zero: the whole loop works.
+And anyone can check it. One command runs the whole loop on a fresh Switch server, with no Console, no chat app and no API keys. Exit code zero.
 
-**4:49 · Why Switch**
+**4:24 · Close**
 
-Switch carries the whole workflow. Take Switch away and Jury is a script with nobody to talk to. And it's built for a real judging team: assigned judges, appeals, bulk import and export.
-
-**5:17 · Close**
-
-Swap one rubric file and it reviews hiring take-homes instead. Jury: every submission gets a room. A human gets the verdict.
+Switch carries the whole workflow: rooms, documents, links, agents and people in one place. Take Switch away and Jury is a script with nobody to talk to. Jury: every submission gets a room. A human gets the verdict.

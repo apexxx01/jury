@@ -151,6 +151,9 @@ def snapshot(state: State, rubric: scoring.Rubric, cfg: config.Config) -> dict[s
         d.update(rank=rank, label=c.label, url=c.url, final=c.final)
         d.pop("extra", None)
         d["judges"] = c.extra.get("judges", [])
+        d["assignee"] = c.extra.get("assignee")
+        d["first_pass_s"] = c.extra.get("first_pass_s")
+        d["appeals"] = len(c.extra.get("appeals", []))
         cases.append(d)
     return {
         "rubric": {

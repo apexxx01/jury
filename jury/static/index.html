@@ -48,6 +48,7 @@ h1{font:700 clamp(30px,5vw,44px)/1.05 Fraunces,Georgia,serif;margin:8px 0 6px;le
 .track{height:8px;border-radius:99px;background:var(--track);overflow:hidden}
 .fill{height:100%;border-radius:99px;background:var(--brass);transition:width .6s ease}
 .crit .v{font:500 12px 'JetBrains Mono',monospace;text-align:right}
+.appeal{color:var(--warn);font-weight:600}
 .flags{margin:10px 0 0;padding:0;list-style:none;font-size:13px}
 .flags li{color:var(--bad);margin:2px 0}
 .flags li::before{content:"⚑ ";}
@@ -113,7 +114,10 @@ function render(s){
   $("rubric").textContent = s.rubric.name;
   const cs = s.cases, decided = cs.filter(c => c.verdict).length;
   const top = cs.filter(c => c.verdict && c.verdict.decision === s.rubric.verdicts[0]).length;
-  $("stats").innerHTML = [["Cases", cs.length], ["Decided", decided], [s.rubric.verdicts[0], top]]
+  const passes = cs.map(c => c.first_pass_s).filter(v => v != null).sort((a, b) => a - b);
+  const med = passes.length ? passes[Math.floor(passes.length / 2)] : null;
+  const fmt = (t) => t == null ? "–" : (t >= 60 ? `${Math.floor(t / 60)}m ${String(t % 60).padStart(2, "0")}s` : `${t}s`);
+  $("stats").innerHTML = [["Cases", cs.length], ["Decided", decided], [s.rubric.verdicts[0], top], ["Median first pass", fmt(med)]]
     .map(([k, v]) => `<div class="stat"><b>${v}</b><span>${esc(k)}</span></div>`).join("");
   $("legend").innerHTML = s.rubric.criteria.map(c => `<span><i>${c.weight}%</i> ${esc(c.label)}</span>`).join("");
   if (!cs.length){
@@ -133,7 +137,7 @@ function render(s){
         <div class="rank">${c.rank}</div>
         <div>
           <div class="title"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.owner)}/${esc(c.repo)}</a><span class="num">${esc(c.label)}${c.room_name ? " · #" + esc(c.room_name) : ""}</span></div>
-          <div class="meta">filed by ${esc(c.submitter)}</div>
+          <div class="meta">filed by ${esc(c.submitter)}${c.assignee ? ` · with @${esc(c.assignee)}` : ""}${c.first_pass_s != null ? ` · first pass ${fmt(c.first_pass_s)}` : ""}${c.appeals ? ` · <span class="appeal">appealed${c.appeals > 1 ? " ×" + c.appeals : ""}</span>` : ""}</div>
           ${crit}
           ${flags ? `<ul class="flags">${flags}</ul>` : ""}
           <div class="judges">${judges}</div>

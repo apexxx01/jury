@@ -29,10 +29,10 @@ from .switch import Event, SwitchAgent, SwitchError
 log = logging.getLogger("jury.clerk")
 
 HELP = """**Jury Clerk** · how this floor works
-• Paste a GitHub repo link in **#{intake}** and I open a case room for it.
+• Paste a GitHub repo link in **#{intake}** and I open a case room for it. Reply `appeal <why>` in that thread to appeal a verdict.
 • In a case room, judges post scorecards; I tally them and flag disagreements.
 • A human judge decides: `@{clerk} verdict shortlist 88 great use of rooms` (verdicts: {verdicts}; the score is optional).
-• `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} case 7` · `@{clerk} rescore` / `rescan` / `summon` (in a case room) · `@{clerk} help`"""
+• `@{clerk} leaderboard` · `@{clerk} status` · `@{clerk} stats` · `@{clerk} my queue` · `@{clerk} assign 7 to @name` · `@{clerk} case 7` · `@{clerk} rescore` / `rescan` / `summon` (in a case room) · `@{clerk} help`"""
 
 INTAKE_INSTRUCTIONS = """This is the Jury intake room. People paste GitHub repository links of
 submissions here. The agent named {clerk} opens one case room per submission.
@@ -236,6 +236,12 @@ class Clerk:
         return sender_name in await self.known_agents(refresh=True)
 
     async def _on_intake(self, p: dict[str, Any], body: str) -> None:
+        thread = p.get("thread_id")
+        if thread and re.search(r"\bappeal\b", body, re.I) and not await self._is_agent(p.get("sender_name") or ""):
+            case = next((c for c in self.state.cases.values() if c.intake_message_id == thread), None)
+            if case is not None:
+                await self._appeal(case, p, body)
+                return
         repos = find_repos(body)
         if not repos:
             if self._addressed_to_me(p, body):
@@ -260,6 +266,8 @@ class Clerk:
         self.state.save()
         judges = await self.present_judges()
         case.extra["judges"] = [self.auditor_name, *judges]
+        if assignee := self._next_assignee():
+            case.extra["assignee"] = assignee
         room_name = f"case-{case.number:03d}-{slug(repo, 60)}"
         submission_md = (
             f"# {case.label}: {owner}/{repo}\n\n"
@@ -415,6 +423,7 @@ class Clerk:
 
         if not missing and case.status == "open":
             case.status = "scored"
+            case.extra.setdefault("first_pass_s", round(time.time() - case.created_at))
             await self._ask_for_verdict(case)
             # The floor's document moves when a case is ready for a verdict, not on
             # every scorecard: Switch announces each edit in the channel. The web
@@ -442,7 +451,8 @@ class Clerk:
             flags += "\n⚔️ Judges still split on: " + ", ".join(
                 f"{self._label(c)} ({ja} {sa:g} vs {jb} {sb:g})" for c, ja, sa, jb, sb in open_fights
             )
-        people = " ".join(f"@{u}" for u in self.cfg.judge_users)
+        assignee = case.extra.get("assignee")
+        people = f"@{assignee}" if assignee else " ".join(f"@{u}" for u in self.cfg.judge_users)
         await self.agent.post(
             case.room_id or "",
             f"{people + ' ' if people else ''}✅ **All scorecards are in for {case.label}.** Provisional **{case.provisional:g}/100**.\n"
@@ -484,7 +494,25 @@ class Clerk:
     async def _command(self, room_id: str, p: dict[str, Any], body: str, case: Case | None) -> None:
         text = re.sub(rf"@{re.escape(self.name)}\b", "", body, flags=re.IGNORECASE).strip().lower()
         thread = p.get("message_id")
-        if text.startswith(("leaderboard", "board", "rank", "top")):
+        if text.startswith(("my queue", "queue")):
+            who = p.get("on_behalf_of") or p.get("sender_name") or ""
+            m = re.search(r"queue\s+@?(\S+)", text)
+            if m and m.group(1) not in ("for", "me"):
+                who = m.group(1)
+            await self.agent.post(room_id, self.queue_md(who), thread)
+        elif m := re.match(r"assign\s+(?:case\s*)?#?(\d+)\s+(?:to\s+)?@?(\S+)", text):
+            c = self.state.by_number(int(m.group(1)))
+            if not c:
+                await self.agent.post(room_id, f"No case #{m.group(1)} on file.", thread)
+            else:
+                c.extra["assignee"] = m.group(2)
+                await self.agent.post(room_id, f"👤 {c.label} is now with @{m.group(2)}.", thread)
+                if c.room_id and c.room_id != room_id:
+                    await self.agent.post(c.room_id, f"👤 @{m.group(2)} is now the human judge on this case.")
+                self._changed()
+        elif text.startswith(("stats", "metrics")):
+            await self.agent.post(room_id, self.stats_md(), thread)
+        elif text.startswith(("leaderboard", "board", "rank", "top")):
             await self.agent.post(room_id, self.leaderboard_md(limit=15), thread)
         elif text.startswith("status"):
             if case:
@@ -590,6 +618,77 @@ class Clerk:
     def _label(self, cid: str) -> str:
         c = self.rubric.get(cid)
         return c.label if c else cid
+
+    def _next_assignee(self) -> str | None:
+        """Deal cases to the human judges in turn, skipping whoever holds the most open ones."""
+        judges = list(self.cfg.judge_users)
+        if not judges:
+            return None
+        load = {j: 0 for j in judges}
+        for c in self.state.cases.values():
+            a = c.extra.get("assignee")
+            if a in load and c.status != "decided":
+                load[a] += 1
+        n = len(self.state.cases)
+        return min(judges, key=lambda j: (load[j], (judges.index(j) - n) % len(judges)))
+
+    async def _appeal(self, case: Case, p: dict[str, Any], body: str) -> None:
+        who = p.get("on_behalf_of") or p.get("sender_name") or "someone"
+        text = re.sub(r"^\s*@\S+\s*", "", body).strip()[:600]
+        history = case.extra.setdefault("appeals", [])
+        history.append({"by": who, "text": text, "at": time.time(), "previous": case.verdict})
+        if case.verdict:
+            case.status = "scored"  # back to awaiting a human verdict; the old one is kept in history
+            case.verdict = None
+        assignee = case.extra.get("assignee")
+        people = f"@{assignee}" if assignee else " ".join(f"@{u}" for u in self.cfg.judge_users)
+        await self.agent.post(
+            self.state.rooms["intake"], f"📮 Appeal for **{case.label}** logged. A human judge will take another look.", p.get("message_id")
+        )
+        if case.room_id:
+            await self.agent.post(
+                case.room_id,
+                f"{people + ' ' if people else ''}📮 **Appeal from {who}:** {text}\n"
+                + (f"The earlier verdict ({history[-1]['previous']['decision'].upper()}) is set aside. " if history[-1]["previous"] else "")
+                + f"Judges, weigh the appeal here; then a human gives the verdict again with `@{self.name} verdict …`.",
+            )
+        await self.refresh_floor(note=f"📮 Appeal on **{case.label}** `{case.owner}/{case.repo}` by {who}")
+        self._changed()
+
+    def queue_md(self, who: str) -> str:
+        mine = [c for c in self.state.cases.values() if c.extra.get("assignee") == who and c.status != "decided"]
+        if not mine:
+            return f"@{who} has nothing waiting. 🎉"
+        mine.sort(key=lambda c: (c.status != "scored", c.number))
+        rows = [f"**@{who}'s queue** ({len(mine)})"]
+        for c in mine:
+            state = "ready for your verdict" if c.status == "scored" else "judges still working"
+            rows.append(f"• {c.label} `{c.owner}/{c.repo}` · {state}" + (f" · #{c.room_name}" if c.room_name else ""))
+        return "\n".join(rows)
+
+    def stats_md(self) -> str:
+        cases = list(self.state.cases.values())
+        passes = sorted(c.extra["first_pass_s"] for c in cases if c.extra.get("first_pass_s") is not None)
+        flagged = sum(1 for c in cases if c.red_flags)
+        copies = sum(1 for c in cases if any(f.startswith("Possible copy") for f in c.red_flags))
+        overrides = sum(
+            1
+            for c in cases
+            if c.verdict
+            and c.verdict.get("score") is not None
+            and c.provisional is not None
+            and abs(c.verdict["score"] - c.provisional) >= 5
+        )
+        lines = [f"**Jury stats** · {len(cases)} case(s)"]
+        if passes:
+            med = passes[len(passes) // 2]
+            lines.append(
+                f"• first pass (filed → every scorecard in): median **{med // 60}m {med % 60:02d}s**, fastest {passes[0] // 60}m {passes[0] % 60:02d}s"
+            )
+        lines.append(f"• {flagged} case(s) with red flags, {copies} possible copies")
+        lines.append(f"• {sum(1 for c in cases if c.verdict)} verdict(s), {overrides} where the human moved the panel's score by 5+")
+        lines.append(f"• {sum(len(c.extra.get('appeals', [])) for c in cases)} appeal(s)")
+        return "\n".join(lines)
 
     def status_md(self) -> str:
         cases = list(self.state.cases.values())

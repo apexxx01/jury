@@ -1,0 +1,104 @@
+# The whole Jury loop on a throwaway Switch server, in one command:
+#
+#   docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke
+#
+# Postgres + Switch (the published switch-core image) + Jury (Clerk + Auditor)
+# + scripted stand-in judges + the end-to-end smoke test. No Switch Console, no
+# chat app, no LLM keys. The smoke test files a real repo, waits for all three
+# scorecards, gives a human verdict through the Gateway and checks the result;
+# exit code 0 means the loop works. The leaderboard is at http://127.0.0.1:8787
+# while it runs. `docker compose -f repro/compose.yaml down -v` cleans up.
+#
+# Every secret below is a throwaway for this local demo. Don't reuse them.
+name: jury-repro
+
+x-demo: &demo
+  SWITCH_URL: http://switch:8000
+  SWITCH_REGISTRATION_TOKEN: jury-repro-registration-token
+  GATEWAY_ADMIN_EMAIL: admin@jury.local
+  GATEWAY_ADMIN_PASSWORD: jury-repro-admin
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: switch_owner
+      POSTGRES_PASSWORD: jury-repro-owner
+      POSTGRES_DB: switch
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U switch_owner"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  init-db:
+    image: postgres:16-alpine
+    environment:
+      PGPASSWORD: jury-repro-owner
+    entrypoint: >
+      sh -c "psql -h postgres -U switch_owner -d postgres -tc \"SELECT 1 FROM pg_roles WHERE rolname='switch_app'\" | grep -q 1 ||
+             psql -h postgres -U switch_owner -d postgres -c \"CREATE ROLE switch_app LOGIN PASSWORD 'jury-repro-app' NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS;\""
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  switch:
+    image: ghcr.io/sandbox-quantum/switch-core:${SWITCH_VERSION:-0.40.1}
+    environment:
+      <<: *demo
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: switch
+      DB_USER: switch_app
+      DB_PASSWORD: jury-repro-app
+      DB_OWNER_USER: switch_owner
+      DB_OWNER_PASSWORD: jury-repro-owner
+      ID_SERVER_NAME: localhost
+      MATRIX_SERVER_NAME: localhost
+      AGENT_REGISTRATION_TOKEN: jury-repro-registration-token
+      SECRET_KEYS: "repro:6a7572792d7265707264656d6f2d6b65792d6e6f742d666f722d70726f64"
+      GATEWAY_COOKIE_SECURE: "false"
+      FRONTEND_BASE_URL: http://127.0.0.1:8000
+    ports:
+      - "127.0.0.1:${REPRO_SWITCH_PORT:-18000}:8000"
+    depends_on:
+      init-db:
+        condition: service_completed_successfully
+
+  jury:
+    build: ..
+    command: ["python", "-m", "jury", "up"]
+    environment:
+      <<: *demo
+    volumes:
+      - jury-data:/data
+    ports:
+      - "127.0.0.1:8787:8787"
+    restart: on-failure   # waits out Switch's first boot (migrations)
+    depends_on: [switch]
+
+  judges:
+    build: ..
+    command: ["python", "scripts/stand_in_judges.py"]
+    environment:
+      <<: *demo
+    volumes:
+      - jury-data:/data
+    restart: on-failure
+    depends_on: [switch]
+
+  smoke:
+    build: ..
+    environment:
+      <<: *demo
+    volumes:
+      - jury-data:/data
+    entrypoint: >
+      sh -c "echo 'waiting for Jury to open its rooms…';
+             until python -c 'import json;json.load(open(\"/data/.jury/state.json\"))[\"rooms\"][\"intake\"]' 2>/dev/null; do sleep 2; done;
+             sleep 6;
+             python scripts/smoke.py --repo https://github.com/psf/requests --email admin@jury.local --password jury-repro-admin --timeout 300"
+    depends_on: [jury, judges]
+
+volumes:
+  jury-data:

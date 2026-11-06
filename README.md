@@ -156,9 +156,20 @@ The live leaderboard is at http://127.0.0.1:8787.
 
 ## Reproduce it without any LLM
 
-The whole loop runs against any Switch server without Claude Code, OpenCode or Codex. Scripted stand-in judges file
-canned scorecards, and the smoke test drives intake, case room, judges, a human verdict through the
-Gateway, and the leaderboard, then checks the result:
+**One command, nothing but Docker.** This starts a throwaway Switch server (the published `switch-core` image),
+Jury, scripted stand-in judges and the end-to-end smoke test, and exits 0 when the whole loop works:
+
+```bash
+docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke
+docker compose -f repro/compose.yaml down -v     # clean up
+```
+
+The smoke test files a real repository, waits for all three scorecards, gives a human verdict through the
+Gateway and checks that the case lands on the leaderboard (http://127.0.0.1:8787 while it runs). No Switch
+Console, chat app or LLM keys involved; the stand-ins file canned scorecards, so this proves the plumbing,
+not the judging.
+
+Against a Switch server you already run, the same loop in three terminals:
 
 ```bash
 uv run jury up                                   # terminal 1

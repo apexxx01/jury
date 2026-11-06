@@ -117,14 +117,21 @@ uv run jury doctor     # checks the server, token, messaging app and judges
 uv run jury up         # registers Clerk + Auditor, creates #jury-intake and #jury-floor
 ```
 
+`doctor` finds the server by itself. If it says there's no registration token, your Console keeps secrets
+encrypted (newer builds do): create one under **Settings → API keys → Create registration key**, or the
+admin dashboard's **API Keys** page, then `echo 'SWITCH_REGISTRATION_TOKEN=<key>' >> .env` and run it
+again. Running Mattermost or a chat account Switch can't match to you? Add
+`JURY_JUDGE_USERS=<your username there>` so you're put in every case room.
+
 Then, in Switch Console: **Templates → "Jury bench" → Create**. That gives you the Inspector and the Critic,
 plus a `#jury-chambers` channel where they introduce themselves.
 
 Paste a GitHub link in `#jury-intake`. That's it.
 
-On a machine running Console, Jury reads the server address and registration token from Console's own
-settings, so there are no keys to copy. For any other Switch server, set `SWITCH_URL` and
-`SWITCH_REGISTRATION_TOKEN` (see [`.env.example`](.env.example)).
+On a machine running Console, Jury reads the server's address from Console's own files (and the token too,
+on builds that keep it in a `.env`). For any other Switch server, set `SWITCH_URL` and
+`SWITCH_REGISTRATION_TOKEN` (see [`.env.example`](.env.example)). The first time takes about 45 minutes,
+most of it Docker and chat-app setup; [`docs/RUNBOOK.md`](docs/RUNBOOK.md) walks through every click.
 
 ### In the chat
 
@@ -169,7 +176,7 @@ Jury smoke test · https://github.com/psf/requests
   ✓ the whole loop works
 ```
 
-Unit tests: `uv run pytest`, 37 of them, covering the protocol client against a fake Switch server (SSE
+Unit tests: `uv run pytest` covers the protocol client against a fake Switch server (SSE
 parsing, reconnect with the same connection id and `Last-Event-ID`, room claims, catch-up), scorecard and
 verdict parsing, the scoring arithmetic, the Auditor against fixture repos, Console discovery and state. CI
 runs them with ruff on every push.

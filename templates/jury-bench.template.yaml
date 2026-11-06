@@ -1,11 +1,12 @@
 # Jury bench: the two LLM judges, and a chambers room to meet them in.
 #
-# Import this in Switch Console (Templates → Import) after `jury up` has run.
+# `jury up` publishes this to the server's template library, so in Switch Console it's
+# Templates → Jury bench → Use → Create all. (Templates → Import works too.)
 # It creates:
 #   jury-inspector  clones each submission and actually tries to run it
 #   jury-critic     judges the idea, the impact, the presentation, and
 #                   whether Switch is central
-# on two different coding agents by default (Claude Code and Codex), so the
+# on two different coding agents where it can (Claude Code, then Codex or OpenCode), so the
 # bench is not one model agreeing with itself.
 #
 # Clerk (the `jury` process) adds both to every case room it opens and reads

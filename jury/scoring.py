@@ -151,6 +151,8 @@ def parse_scorecard(body: str, rubric: Rubric) -> dict[str, Any] | None:
             continue
         found = obj
     if found is None:
+        found = _loose_scorecard(body or "")
+    if found is None:
         return None
     raw_scores = found.get("scores") or {}
     scores: dict[str, float] = {}
@@ -179,6 +181,35 @@ def parse_scorecard(body: str, rubric: Rubric) -> dict[str, Any] | None:
         "red_flags": [str(f) for f in flags if str(f).strip()],
         "runs": found.get("runs"),
     }
+
+
+def _loose_scorecard(body: str) -> dict[str, Any] | None:
+    """A scorecard posted without a fence: bare JSON, or JSON whose lines a chat
+    app or model wrapped in single backticks. The last ``{"scores": ...}`` object wins."""
+    text = body.replace("`", "")
+    found = None
+    for m in re.finditer(r'\{\s*"scores"\s*:', text):
+        depth, end = 0, None
+        for i in range(m.start(), len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        if end is None:
+            continue
+        chunk = text[m.start() : end]
+        for candidate in (chunk, re.sub(r",\s*([}\]])", r"\1", chunk)):
+            try:
+                obj = json.loads(candidate)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(obj, dict) and isinstance(obj.get("scores"), dict):
+                found = obj
+            break
+    return found
 
 
 def criterion_means(scorecards: dict[str, dict[str, Any]], rubric: Rubric) -> dict[str, float]:

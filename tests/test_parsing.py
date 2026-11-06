@@ -130,3 +130,21 @@ def test_state_roundtrip_and_ranking(tmp_path):
 def test_slug():
     assert slug("My Cool_Repo.JS") == "my-cool-repo-js"
     assert slug("!!!") == "case"
+
+
+def test_parse_scorecard_backtick_wrapped_lines(rubric):
+    body = (
+        "Report text.\n"
+        '`{"scores": {"technical_execution": 7, "creativity_impact": 7},`\n'
+        '` "notes": {"technical_execution": "38 tests pass"},`\n'
+        '` "summary": "ok", "runs": true,`\n'
+        '` "red_flags": []}`'
+    )
+    card = scoring.parse_scorecard(body, rubric)
+    assert card["scores"] == {"technical_execution": 7.0, "creativity_impact": 7.0}
+    assert card["runs"] is True
+
+
+def test_parse_scorecard_bare_json(rubric):
+    card = scoring.parse_scorecard('Scores: {"scores": {"presentation": 6}, "summary": "s"} done', rubric)
+    assert card["scores"] == {"presentation": 6.0}

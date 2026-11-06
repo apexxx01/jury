@@ -33,3 +33,17 @@ def test_env_file_parsing(tmp_path):
     p.write_text("export A=1\nB='two words'\n# c=3\nbroken line\nD=\n")
     assert config.read_env_file(p) == {"A": "1", "B": "two words", "D": ""}
     assert config.read_env_file(tmp_path / "missing") == {}
+
+
+def test_newer_console_ports_json_gives_url_without_token(tmp_path, monkeypatch):
+    monkeypatch.setattr(config.Path, "home", lambda: tmp_path)
+    monkeypatch.setattr(config.platform, "system", lambda: "Darwin")
+    for k in ("SWITCH_URL", "SWITCH_REGISTRATION_TOKEN"):
+        monkeypatch.delenv(k, raising=False)
+    d = tmp_path / "Library" / "Application Support" / "switchdash" / "local-switch-server"
+    d.mkdir(parents=True)
+    (d / "ports.json").write_text('{"gateway": 3000, "api": 8042}')
+    (tmp_path / ".env").write_text("SWITCH_REGISTRATION_TOKEN=from-console-settings\n")
+    cfg = config.load(cwd=tmp_path)
+    assert cfg.switch_url == "http://127.0.0.1:8042"
+    assert cfg.registration_token == "from-console-settings"

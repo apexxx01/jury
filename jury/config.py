@@ -7,6 +7,7 @@ Jury reads that file, so on a machine running Console there is nothing to copy.
 
 from __future__ import annotations
 
+import json
 import os
 import platform
 from dataclasses import dataclass, field
@@ -52,7 +53,12 @@ def console_env_candidates() -> list[Path]:
 
 
 def discover_console() -> tuple[str | None, str | None, Path | None]:
-    """(url, registration token, file) from Switch Console's local server, if any."""
+    """(url, registration token, file) from Switch Console's local server, if any.
+
+    Older Console builds leave a ``.env`` with the token in it. Newer ones keep
+    secrets in an encrypted store and only ``ports.json`` on disk, so the URL
+    comes from there and the token from Console's Settings → API keys.
+    """
     for p in console_env_candidates():
         env = read_env_file(p)
         if env.get("AGENT_REGISTRATION_TOKEN"):
@@ -60,6 +66,13 @@ def discover_console() -> tuple[str | None, str | None, Path | None]:
             bind = env.get("SWITCH_BIND_ADDR", "127.0.0.1")
             host = "127.0.0.1" if bind in ("", "0.0.0.0") else bind
             return f"http://{host}:{port}", env["AGENT_REGISTRATION_TOKEN"], p
+        ports = p.with_name("ports.json")
+        try:
+            api = json.loads(ports.read_text(encoding="utf-8")).get("api")
+        except (OSError, ValueError, AttributeError):
+            api = None
+        if api:
+            return f"http://127.0.0.1:{int(api)}", None, ports
     return None, None, None
 
 

@@ -44,6 +44,14 @@ IDENTITIES = {
 }
 
 
+TOKEN_HELP = (
+    "No registration token yet. In Switch Console: Settings → API keys → type a label (e.g. jury) → "
+    "Create registration key, copy it, then run:\n"
+    "    echo 'SWITCH_REGISTRATION_TOKEN=<paste it>' >> .env\n"
+    "  and run this command again."
+)
+
+
 def _die(msg: str, code: int = 1) -> None:
     print(f"✗ {msg}", file=sys.stderr)
     sys.exit(code)
@@ -62,10 +70,7 @@ async def ensure_agent(cfg: config.Config, state: State, name: str) -> SwitchAge
             log.warning("saved key for %s rejected (%s); re-registering", name, e.status)
             await agent.close()
     if not cfg.registration_token:
-        _die(
-            "No registration token. Set SWITCH_REGISTRATION_TOKEN (or run Switch Console's local server on this machine "
-            "so Jury can read it)."
-        )
+        _die(TOKEN_HELP)
     display, desc = IDENTITIES[name]
     try:
         creds = await register_agent(cfg.switch_url, cfg.registration_token, name=name, display_name=display, description=desc)
@@ -207,7 +212,7 @@ async def cmd_doctor(cfg: config.Config, args: argparse.Namespace) -> None:
 
     print(f"Jury doctor · {cfg.switch_url} (config from {cfg.source})")
     line(await health(cfg.switch_url), "Switch answers /health")
-    line(bool(cfg.registration_token), "registration token available")
+    line(bool(cfg.registration_token), "registration token available" + ("" if cfg.registration_token else "\n      " + TOKEN_HELP))
     try:
         rubric = scoring.load_rubric(cfg.rubric_path)
         line(True, f"rubric '{rubric.name}' loads, weights add to 100")

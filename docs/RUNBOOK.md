@@ -37,11 +37,21 @@ Full guide: https://docs.switchagents.ai/flintai/switch/deploy/messaging-apps/di
 
 ## 3. Jury
 
+Newer Console builds keep the server's secrets in an encrypted store, so Jury needs a registration key from
+you once. In Switch Console: **Settings → API keys** → label it `jury` → **Create registration key** → copy it.
+
 ```bash
 cd ~/Developer/jury          # wherever the repo is
+echo 'SWITCH_REGISTRATION_TOKEN=<paste the key>' >> .env
 uv sync
 uv run jury doctor
 ```
+
+Jury finds the server's port by itself (from Console's `ports.json`).
+
+**No Discord?** Console's local server comes with Mattermost already connected, and Jury works the same
+there. Skip section 2. To see the channels in a browser, open Console → **Home → Messaging apps** → the ⋯
+menu on Mattermost → **Sign-in details…**, then log in at the address it shows.
 
 `doctor` should show ✓ on everything except the two judges, which don't exist yet. If you connected more
 than one messaging app, run `echo 'JURY_BRIDGE=Discord' >> .env`.

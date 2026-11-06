@@ -1,4 +1,4 @@
-*flip the switch, nov 2026 · [github.com/apexxx01/jury](https://github.com/apexxx01/jury) · wanna see it without setting anything up? `uv run jury demo`*
+*flip the switch, nov 2026 · [github.com/apexxx01/jury](https://github.com/apexxx01/jury) · **[try the console live](https://apexxx01.github.io/jury/)**, nothing to install*
 
 7,516 people signed up for this hackathon.
 
@@ -14,7 +14,7 @@ an agent opens a room just for that submission. three AI judges walk in, dig thr
 
 AI does the grind. a person gives the verdict. always.
 
-![the jury console. 12 cases on the floor, 3 need you](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/console.png)
+![the jury console. 12 cases on the floor, 3 need you](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/console-light.png)
 
 ## why Switch made this click
 
@@ -73,13 +73,13 @@ so there's a console. and honestly v1 was mid. big numbers, ranked list, looked 
 - **no black box.** every case has a score receipt. each criterion, who scored it, the mean, the weight, the points. if a human overrode it, that's on there too
 - **is the AI even good?** a chart of the panel's score vs the human's final score, plus each judge's lean. that's how an organiser knows which judge to trust
 
-![a case file: score receipt, radar, scorecards](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/case-file.png)
+![a case file: score receipt, radar, scorecards](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/case-file-light.png)
 
 one call i went back and forth on: there's a verdict builder. pick shortlist, slide the score, type a note. but it doesn't submit anything. it copies the command and you paste it into the case room. why? because a verdict given in chat is on the record, under the judge's actual name, right next to the evidence. a button on a localhost page is faster and throws all of that away. not worth it.
 
-the whole console is one html file. no build step, no chart library, every chart drawn by hand in svg. and `jury demo` spins it up on a recorded floor so anyone can poke at it without a Switch server.
+the whole console is one html file. no build step, no chart library, every chart drawn by hand in svg. same file runs on github pages with a recorded floor baked in, so you can [poke at it right now](https://apexxx01.github.io/jury/) without a Switch server.
 
-![charts: score spread, criteria, panel vs human, timeline](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/insights.png)
+![charts: score spread, criteria, panel vs human, timeline](https://raw.githubusercontent.com/apexxx01/jury/main/docs/img/insights-light.png)
 
 ## stuff a real organiser needs
 
@@ -125,7 +125,7 @@ docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit
 
 fresh Switch server, jury, stand-in judges, and a smoke test that files a real repo, waits for scorecards, gives a human verdict and exits 0. plus 58 tests behind it.
 
-or just `uv run jury demo` and click around.
+or skip all that and click around the live console: **[apexxx01.github.io/jury](https://apexxx01.github.io/jury/)**. it's the real thing running on a recorded floor (sample teams plus jury's own case). `uv run jury demo` gives you the same thing locally.
 
 ## what i'd tell anyone building on Switch
 

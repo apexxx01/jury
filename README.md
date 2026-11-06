@@ -24,7 +24,7 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Sw
 
 [▶ Demo video](DEMO_VIDEO_URL) · [**Try the console live**](https://apexxx01.github.io/jury/) · [The console](#the-console) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
 
-<img src="docs/img/console.png" alt="The Jury console: a headline saying 12 cases on the floor and 3 need you, a five-stage pipeline from filed to verdict, floor KPIs, and a strip of alerts for copies, judge splits and cases waiting on a human" width="820">
+<img src="docs/img/console-light.png" alt="The Jury console: a headline saying 12 cases on the floor and 3 need you, a five-stage pipeline from filed to verdict, floor KPIs, and a strip of alerts for copies, judge splits and cases waiting on a human" width="820">
 
 <sub>The console on the recorded demo floor (<code>uv run jury demo</code>): sample teams, plus Jury's own dry run as Case #001.</sub>
 
@@ -132,9 +132,9 @@ floor at once.
 
 There's a 40-second guided tour (`g`), shortcuts (`?`), and light and dark themes (`t`).
 
-<img src="docs/img/case-file.png" alt="A case file in the Jury console: the score, a star rating, rank and percentile, a radar of the four criteria against the floor average, a score receipt with the weighted arithmetic, and the scorecard table" width="820">
+<img src="docs/img/case-file-light.png" alt="A case file in the Jury console: the score, a star rating, rank and percentile, a radar of the four criteria against the floor average, a score receipt with the weighted arithmetic, and the scorecard table" width="820">
 
-<img src="docs/img/insights.png" alt="Charts in the Jury console: score distribution by outcome with the shortlist line, criteria averages with ranges, panel against human scores, and a timeline of every case" width="820">
+<img src="docs/img/insights-light.png" alt="Charts in the Jury console: score distribution by outcome with the shortlist line, criteria averages with ranges, panel against human scores, and a timeline of every case" width="820">
 
 `uv run jury demo` serves the console on a recorded floor ([`jury/static/demo.json`](jury/static/demo.json),
 built by [`scripts/make_demo.py`](scripts/make_demo.py) through the same scoring code and snapshot as a live

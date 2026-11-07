@@ -43,6 +43,17 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Sw
 | **See it** | **[apexxx01.github.io/jury](https://apexxx01.github.io/jury/)**, the console on a recorded floor, in your browser. Or `uv run jury demo` locally. [More ↓](#the-console) |
 | **Try it** | `docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke` runs the whole loop in one command. [More ↓](#reproduce-it-without-any-llm) |
 
+## Run it
+
+Pick how much time you have. Each one is the real thing.
+
+| Time | What you need | Do this | What you get |
+|---|---|---|---|
+| **0 min** | a browser | open **[apexxx01.github.io/jury](https://apexxx01.github.io/jury/)** | the console on a recorded floor: click any case, take the tour |
+| **1 min** | [uv](https://docs.astral.sh/uv/getting-started/installation/), git | `git clone https://github.com/apexxx01/jury && cd jury && uv run jury demo`, then open http://127.0.0.1:8787 | the same console, served by Jury on your machine |
+| **~5 min** | Docker | `git clone https://github.com/apexxx01/jury && cd jury`<br>`docker compose -f repro/compose.yaml up --build --abort-on-container-exit --exit-code-from smoke` | the whole loop on a fresh Switch server: a real repo filed, audited, scored, a human verdict, exit code 0. No keys. [Details ↓](#reproduce-it-without-any-llm) |
+| **~45 min** | Switch Console, a chat app, uv | the [Quickstart ↓](#quickstart) | your own judging floor with real AI judges in your team chat |
+
 ## The problem
 
 Flip the Switch had **7,516 people registered**. If one in five submits, that is about 1,500 repositories.

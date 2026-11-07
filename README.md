@@ -22,7 +22,11 @@ Built on [Switch](https://github.com/sandbox-quantum/switch) · for [Flip the Sw
 [![Repro: one command](https://img.shields.io/badge/repro-one%20docker%20command-2496ed?logo=docker&logoColor=white)](#reproduce-it-without-any-llm)
 [![Judges](https://img.shields.io/badge/bench-Clerk%20%C2%B7%20Auditor%20%C2%B7%20Inspector%20%C2%B7%20Critic-6e5494)](#the-bench)
 
-[▶ Demo video](DEMO_VIDEO_URL) · [**Try the console live**](https://apexxx01.github.io/jury/) · [Blog post](https://dev.to/apexdoesstuff/i-built-the-thing-that-judges-hackathons-then-made-it-judge-itself-327o) · [The console](#the-console) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
+[**▶ Demo video**](https://youtu.be/-eJ1XW_nFfk) · [**Try the console live**](https://apexxx01.github.io/jury/) · [Blog post](https://dev.to/apexdoesstuff/i-built-the-thing-that-judges-hackathons-then-made-it-judge-itself-327o) · [The console](#the-console) · [How Switch is used](#how-switch-is-used) · [Quickstart](#quickstart) · [Reproduce it without any LLM](#reproduce-it-without-any-llm)
+
+<a href="https://youtu.be/-eJ1XW_nFfk"><img src="docs/img/demo-video.png" alt="Watch the Jury demo video: AI judges that actually run your code" width="820"></a>
+
+<sub>▶ <a href="https://youtu.be/-eJ1XW_nFfk">Watch the 3½-minute demo</a>: a live 9.9s run, Jury judging Switch's own repo, and Jury judging itself.</sub>
 
 <img src="docs/img/console-light.png" alt="The Jury console: a headline saying 12 cases on the floor and 3 need you, a five-stage pipeline from filed to verdict, floor KPIs, and a strip of alerts for copies, judge splits and cases waiting on a human" width="820">
 
